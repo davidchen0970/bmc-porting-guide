@@ -688,15 +688,34 @@ bitbake obmc-phosphor-image
 排查常用:
 
 ```bash
+# 顯示 recipe 的所有環境變數（包含變數展開後的最終值），方便除錯
 bitbake -e <recipe> | less
+
+# 查看該 recipe 的工作目錄 (WORKDIR)
 bitbake -e <recipe> | grep '^WORKDIR='
+
+# 查看該 recipe 的原始碼來源 (SRC_URI)
 bitbake -e <recipe> | grep '^SRC_URI='
+
+# 列出該 recipe 可執行的所有 task
 bitbake -c listtasks <recipe>
+
+# 開啟 devshell，在 recipe 的建置環境中進行手動除錯
 bitbake -c devshell <recipe>
+
+# 強制重新執行 compile task（忽略先前結果）
 bitbake -c compile -f <recipe>
+
+# 顯示目前啟用的所有 layer
 bitbake-layers show-layers
+
+# 查看指定 recipe 是由哪個 layer 提供
 bitbake-layers show-recipes <recipe>
+
+# 顯示所有 .bbappend 與其對應的 recipe
 bitbake-layers show-appends
+
+# 顯示被其他 layer 覆蓋（overlay）的 recipe
 bitbake-layers show-overlayed
 ```
 
@@ -857,11 +876,11 @@ bitbake-layers show-overlayed
 
 ## 7.2.8 本章參考資料
 
-- Yocto Project Reference Manual - Variables: [https://docs. yoctoproject. org/ref-manual/variables. html](https://docs. yoctoproject. org/ref-manual/variables. html)
-- Yocto Project Reference Manual - Tasks: [https://docs. yoctoproject. org/ref-manual/tasks. html](https://docs. yoctoproject. org/ref-manual/tasks. html)
-- BitBake User Manual: [https://docs. yoctoproject. org/bitbake/](https://docs. yoctoproject. org/bitbake/)
-- Yocto Project Development Tasks Manual - Understanding and Creating Layers: [https://docs. yoctoproject. org/dev/dev-manual/layers. html](https://docs. yoctoproject. org/dev/dev-manual/layers. html)
-- OpenEmbedded Layer Index: [https://layers. openembedded. org](https://layers. openembedded. org)
+- Yocto Project Reference Manual - Variables: [https://docs.yoctoproject.org/ref-manual/variables.html](https://docs.yoctoproject.org/ref-manual/variables.html)
+- Yocto Project Reference Manual - Tasks: [https://docs.yoctoproject.org/ref-manual/tasks.html](https://docs.yoctoproject.org/ref-manual/tasks.html)
+- BitBake User Manual: [https://docs.yoctoproject.org/bitbake/](https://docs.yoctoproject.org/bitbake/)
+- Yocto Project Development Tasks Manual - Understanding and Creating Layers: [https://docs.yoctoproject.org/dev/dev-manual/layers.html](https://docs.yoctoproject.org/dev/dev-manual/layers.html)
+- OpenEmbedded Layer Index: [https://layers.openembedded.org](https://layers.openembedded.org)
 
 
 ## 7.3 在 Docker 中建立 Yocto 專案並建置完整映像
