@@ -62,6 +62,11 @@ Yocto 由多個核心元件所組成, 為了方便理解, 可以用**人體**來
 
 ## 7.1.1 Yocto Build Flow(簡化流程)
 
+在官方流程圖當中, 此 Diagram 的資訊量很大, 也有點困難於解讀, 初學時可先用 "由上到下, 從左到右" 的流程理解:
+
+
+![](https://docs.yoctoproject.org/4.0.21/_images/yp-how-it-works-new-diagram.png)
+
 ```mermaid
 flowchart TB
     subgraph G1["1. 準備與解析"]
@@ -79,45 +84,33 @@ flowchart TB
     G1 --> G2 --> G3
 ```
 
-常見的 Yocto 架構圖資訊量很大, 初學時可先用「從左到右」的流程理解:
 
-1. **準備階段(Prepare)**
-   - BitBake 開始運作, 讀取四類設定:
-     - **User Configuration**: 例如 `build/conf/local.conf`
-     - **Metadata**: 各 layer 的 recipes, classes, conf
-     - **Machine Configuration**: 硬體設定, 例如 `qemux86-64`, `ast2600-evb`, 專案 machine
-     - **Policy Configuration**: 發行版政策, 例如 `poky`, OpenBMC distro 設定
-   - 這些設定決定「要建構什麼」以及「如何建構」.
+1. **階段一：準備與解析（對應圖 G1）**
+    BitBake 啟動後，會讀取四大設定來決定「要編什麼」與「怎麼編」：
 
-2. **擷取與打補丁(Fetch / Patch)**
-   - BitBake 根據 `SRC_URI` 變數, 從 Git, HTTP, local file 或 mirror 取得原始碼, 對應 task 通常是 `do_fetch`.
-   - 接著將 patches 套用到原始碼上, 對應 task 通常是 `do_patch`.
+    - **User Configuration**：使用者自訂（如 `local.conf`）。
+    - **Metadata**：各層的配方與設定。
+    - **Machine Configuration**：硬體平台（如 `qemux86-64` 或 `ast2600-evb`）。
+    - **Policy Configuration**：發行版政策（如 `poky` 或 OpenBMC 設定）。
 
-3. **配置, 編譯與安裝(Configure / Compile / Install)**
-   - 執行建構前設定, 對應 `do_configure`, 例如 Autotools, CMake, Meson 的設定階段.
-   - 開始編譯, 對應 `do_compile`.
-   - 將編譯好的檔案安裝到暫存目的地, 對應 `do_install`.
-   - 不同 recipe 之間可能存在 build-time dependency, 因此 BitBake 會依任務依賴圖排程.
+2. **階段二：取得與建構（對應圖 G2）**
+    決定好目標後，開始針對每個 Recipe 執行標準編譯流程：
 
-4. **部署到 Sysroot 與打包(Populate Sysroot / Package)**
-   - 將可供其他 recipe 使用的 headers, libraries, pkg-config files 等部署到 sysroot, 對應 `do_populate_sysroot`.
-   - 將安裝結果拆成多個 package, 對應 `do_package`.
+    - **Fetch**：根據 `SRC_URI` 下載原始碼（Git、HTTP 等）。
+    - **Patch**：將補丁檔套用至原始碼。
+    - **Configure**：執行建構前的設定（如 Autotools、CMake）。
+    - **Compile**：進行實際編譯。
+    - **Install**：將編譯完成的檔案安裝到暫存目錄（此時尚未放入最終系統）。
 
-5. **產生安裝套件(Write RPM / DEB / IPK)**
-   - 將 package 轉成目標平台可使用的格式, 例如 RPM, DEB, IPK.
-   - BMC 專案常見產出位置包含 `tmp/deploy/rpm/`, `tmp/deploy/ipk/` 或依 distro 設定而定的 package deploy 目錄.
+3. **階段三：打包與輸出（對應圖 G3）**
+    編譯安裝完成後，進行後處理與最終產出：
 
-6. **QA 檢查(QA Check)**
-   - Yocto 在建構過程中會執行多種 QA 檢查, 例如 metadata, runtime dependency, license, installed-vs-shipped, rpath, host contamination 等.
-   - QA issue 不一定每次都會讓 build fail, 實際行為會受 `WARN_QA`, `ERROR_QA`, distro policy 影響.
+    - **Populate Sysroot**：將共用的 Header 檔與函式庫部署到 Sysroot，供其他 Recipe 相依使用。
+    - **Package**：將安裝好的檔案拆分成多個套件（例如區分 `runtime` 與 `dev` 包）。
+    - **QA Check**：執行品質檢查（如偵測 Host Contamination、遺漏的依賴、授權檢查等）。
+    - **Image / SDK Generation**：最後根據 Image Recipe 組合出可燒錄的 Rootfs（如 `wic`、`ext4`），或產出供外部開發的 SDK。
 
-7. **套件供給(Package Feeds)**
-   - 建出的 package 可作為 package feed, 放在 `tmp/deploy/` 底下.
-   - 若產品支援線上套件更新, 可進一步規劃 package feed server; 若是 BMC 韌體, 多數情境仍以 image update 為主.
 
-8. **產生映像與 SDK(Image / SDK Generation)**
-   - BitBake 最後會依 image recipe 產生 rootfs 與可燒錄映像, 例如 ext4, wic, ubi, mtd tar, squashfs 等.
-   - 也可以產生 SDK 或 eSDK, 供應用程式開發者使用.
 
 ## 7.1.2 Poky
 
