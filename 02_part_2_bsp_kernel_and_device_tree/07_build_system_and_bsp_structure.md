@@ -1927,10 +1927,10 @@ SRC_URI:append:my-bmc-machine = " file://0001-arm-dts-add-my-platform-sensors.pa
 
 ## 7.5.11 本章參考資料
 
-- Yocto Project Development Tasks Manual - Understanding and Creating Layers: https://docs. yoctoproject. org/dev-manual/layers. html
-- Yocto Project Reference Manual - Append Files: https://docs. yoctoproject. org/ref-manual/terms. html#term-Append-Files
-- BitBake User Manual - Syntax and Operators: https://docs. yoctoproject. org/bitbake/bitbake-user-manual/bitbake-user-manual-metadata. html
-- Yocto Project Reference Manual - Variables: https://docs. yoctoproject. org/ref-manual/variables. html
+- Yocto Project Development Tasks Manual - Understanding and Creating Layers: https://docs.yoctoproject.org/dev-manual/layers.html
+- Yocto Project Reference Manual - Append Files: https://docs.yoctoproject.org/ref-manual/terms.html#term-Append-Files
+- BitBake User Manual - Syntax and Operators: https://docs.yoctoproject.org/bitbake/bitbake-user-manual/bitbake-user-manual-metadata.html
+- Yocto Project Reference Manual - Variables: https://docs.yoctoproject.org/ref-manual/variables.html
 
 ## 7.6 使用 devtool 修改原始碼並產出補丁(Patch)
 
