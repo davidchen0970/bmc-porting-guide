@@ -1825,14 +1825,20 @@ bitbake-layers show-layers
 查看 append:
 
 ```bash
+# 查看指定 recipe 的 .bbappend，並顯示前後文（前 2 行、後 20 行），方便確認是哪個 layer 在擴充該 recipe
 bitbake-layers show-appends | grep -A20 -B2 '<recipe>'
 ```
 
 查看變數最終值:
 
 ```bash
+# 顯示 recipe 的所有環境變數（包含變數展開後的最終值），方便除錯
 bitbake -e <recipe> | less
+
+# 查看 SRC_URI 定義所在的行，方便追蹤來源
 bitbake -e <recipe> | grep -n '^SRC_URI='
+
+# 查看 PACKAGECONFIG 定義所在的行，方便確認目前啟用的功能選項
 bitbake -e <recipe> | grep -n '^PACKAGECONFIG='
 ```
 
