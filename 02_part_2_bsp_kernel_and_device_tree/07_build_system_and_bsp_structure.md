@@ -60,12 +60,11 @@ Yocto 由多個核心元件所組成, 為了方便理解, 可以用**人體**來
 - 近年的 Yocto 文件中, Poky 的角色更偏向參考與測試目標; 新的工作流程也可使用個別 clone 的 `bitbake`, `openembedded-core`, `meta-yocto`, 或使用 `bitbake-setup` 建立建構環境.`poky` 作為 DISTRO 設定仍然存在.
 - OpenBMC 是另一個完整的「人體」, 它**使用** Yocto / OpenEmbedded / BitBake 工具來建構 BMC 映像, 但不要把 OpenBMC 和 Poky 混在一起看.
 
-## 7.1.1 Yocto Build Flow(簡化流程)
-
-在官方流程圖當中, 此 Diagram 的資訊量很大, 也有點困難於解讀, 初學時可先用 "由上到下, 從左到右" 的流程理解:
-
+## 7.1.1 Yocto Build Flow
 
 ![](https://docs.yoctoproject.org/4.0.21/_images/yp-how-it-works-new-diagram.png)
+
+在官方流程圖當中, 此 Diagram 的資訊量很大, 也有點困難於解讀, 初學時可先用 "由上到下, 從左到右" 的流程理解:
 
 ```mermaid
 flowchart TB
