@@ -1238,11 +1238,11 @@ OpenBMC 專案建議額外確認:
 
 ## 7.3.8 本章參考資料
 
-- Yocto Project Quick Build: [https://docs. yoctoproject. org/brief-yoctoprojectqs/index. html](https://docs. yoctoproject. org/brief-yoctoprojectqs/index. html)
-- Yocto Project Reference Manual - System Requirements: [https://docs. yoctoproject. org/ref-manual/system-requirements. html](https://docs. yoctoproject. org/ref-manual/system-requirements. html)
-- Docker Docs - Bind mounts: [https://docs. docker. com/engine/storage/bind-mounts/](https://docs. docker. com/engine/storage/bind-mounts/)
-- Docker Docs - Resource constraints: [https://docs. docker. com/engine/containers/resource_constraints/](https://docs. docker. com/engine/containers/resource_constraints/)
-- AMD / Xilinx Wiki - Building Yocto Images using a Docker Container: [https://xilinx-wiki. atlassian. net/wiki/spaces/A/pages/2823422188/Building+Yocto+Images+using+a+Docker+Container](https://xilinx-wiki. atlassian. net/wiki/spaces/A/pages/2823422188/Building+Yocto+Images+using+a+Docker+Container)
+- Yocto Project Quick Build: [https://docs.yoctoproject.org/brief-yoctoprojectqs/index.html](https://docs.yoctoproject.org/brief-yoctoprojectqs/index.html)
+- Yocto Project Reference Manual - System Requirements: [https://docs.yoctoproject.org/ref-manual/system-requirements.html](https://docs.yoctoproject.org/ref-manual/system-requirements.html)
+- Docker Docs - Bind mounts: [https://docs.docker.com/engine/storage/bind-mounts/](https://docs.docker.com/engine/storage/bind-mounts/)
+- Docker Docs - Resource constraints: [https://docs.docker.com/engine/containers/resource_constraints/](https://docs.docker.com/engine/containers/resource_constraints/)
+- AMD / Xilinx Wiki - Building Yocto Images using a Docker Container: [https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/2823422188/Building+Yocto+Images+using+a+Docker+Container](https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/2823422188/Building+Yocto+Images+using+a+Docker+Container)
 
 ## 7.4 單獨建置與除錯特定套件
 
