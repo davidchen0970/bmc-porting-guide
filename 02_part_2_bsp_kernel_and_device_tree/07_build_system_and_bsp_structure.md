@@ -3227,11 +3227,11 @@ find build/workspace/attic -maxdepth 3 -type f 2>/dev/null | head
 4. 收尾後一定要檢查 `devtool status`, `EXTERNALSRC`, `show-appends`, `SRC_URI`.
 5. 若修改會進 image, 單獨 `bitbake <recipe>` 不夠, 仍需重建 image 或 rootfs.
 
-## 7.8.12 本章參考資料 [待確認: 章節編號]
+## 7.8.12 本章參考資料
 
-- Yocto Project Development Tasks Manual - Using the devtool command-line tool: [https://docs. yoctoproject. org/dev/dev-manual/devtool. html](https://docs. yoctoproject. org/dev/dev-manual/devtool. html)
-- Yocto Project Reference Manual - devtool Quick Reference: [https://docs. yoctoproject. org/ref-manual/devtool-reference. html](https://docs. yoctoproject. org/ref-manual/devtool-reference. html)
-- Yocto Project Reference Manual - Classes / externalsrc: [https://docs. yoctoproject. org/ref-manual/classes. html](https://docs. yoctoproject. org/ref-manual/classes. html)
+- Yocto Project Development Tasks Manual - Using the devtool command-line tool: [https://docs.yoctoproject.org/dev/dev-manual/devtool.html](https://docs.yoctoproject.org/dev/dev-manual/devtool.html)
+- Yocto Project Reference Manual - devtool Quick Reference: [https://docs.yoctoproject.org/ref-manual/devtool-reference.html](https://docs.yoctoproject.org/ref-manual/devtool-reference.html)
+- Yocto Project Reference Manual - Classes / externalsrc: [https://docs.yoctoproject.org/ref-manual/classes.html](https://docs.yoctoproject.org/ref-manual/classes.html)
 
 ## 7.9 OpenBMC 新 Machine Layer 與 DTS Bring-up 系統化流程
 
