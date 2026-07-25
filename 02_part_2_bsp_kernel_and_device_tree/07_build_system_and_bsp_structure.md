@@ -2228,23 +2228,13 @@ bitbake-layers show-appends | grep -A10 -B2 '<recipe>'
 7. 至少從 `do_patch`, `do_compile`, 完整 `bitbake <recipe>` 驗證一次; 若會進 image, 再重建 image.
 8. 若是 live target 測試, `deploy-target` 只能視為開發驗證, 不能取代正式 update / image boot test.
 
-## 7.6.12 回查結果
-
-本章回查後已補強:
-
-- 補上 `devtool modify`, workspace layer, `externalsrc`, `EXTERNALSRC` 的關係.
-- 補上 `zstd-native` 與 target recipe 的差異提醒, 避免把 host tool 變更誤認為會進 BMC rootfs.
-- 補上 `update-recipe` 與 `finish` 的使用差異, 並建議 BMC platform patch 優先收回自己的 layer.
-- 補上 `deploy-target` 的用途與限制.
-- 補上收尾後的驗證流程:`devtool status`, `show-appends`, `bitbake -e`, `cleansstate` 後重建.
-
 ## 7.6.13 本章參考資料
 
-- Yocto Project Development Tasks Manual - Using the devtool command-line tool: [https://docs. yoctoproject. org/dev/dev-manual/devtool. html](https://docs. yoctoproject. org/dev/dev-manual/devtool. html)
-- Yocto Project Reference Manual - devtool Quick Reference: [https://docs. yoctoproject. org/ref-manual/devtool-reference. html](https://docs. yoctoproject. org/ref-manual/devtool-reference. html)
-- Yocto Project Reference Manual - Classes / externalsrc: [https://docs. yoctoproject. org/ref-manual/classes. html](https://docs. yoctoproject. org/ref-manual/classes. html)
+- Yocto Project Development Tasks Manual - Using the devtool command-line tool: [https://docs.yoctoproject.org/dev/dev-manual/devtool.html](https://docs.yoctoproject.org/dev/dev-manual/devtool.html)
+- Yocto Project Reference Manual - devtool Quick Reference: [https://docs.yoctoproject.org/ref-manual/devtool-reference.html](https://docs.yoctoproject.org/ref-manual/devtool-reference.html)
+- Yocto Project Reference Manual - Classes / externalsrc: [https://docs.yoctoproject.org/ref-manual/classes.html](https://docs.yoctoproject.org/ref-manual/classes.html)
 
-## 7.7 撰寫一個自訂的 . bb Recipe
+## 7.7 撰寫一個自訂的 .bb Recipe
 
 前面章節已經說明兩種常見情境: 用 `.bbappend` 修改既有 recipe 的 metadata, 或用 `devtool` 對既有 recipe 的原始碼產出 patch. 這一章處理另一種情境:**套件還不存在, 需要自己新增一個 `.bb` recipe**.
 
@@ -2845,10 +2835,10 @@ find tmp/work -path '*<recipe>*packages-split*' -type f | sort
 
 ## 7.7.17 本章參考資料 [待確認: 章節編號]
 
-- Yocto Project Development Tasks Manual - Writing a New Recipe: [https://docs. yoctoproject. org/dev/dev-manual/new-recipe. html](https://docs. yoctoproject. org/dev/dev-manual/new-recipe. html)
-- Yocto Project Reference Manual - Variables Glossary: [https://docs. yoctoproject. org/ref-manual/variables. html](https://docs. yoctoproject. org/ref-manual/variables. html)
-- Yocto Project Reference Manual - Tasks: [https://docs. yoctoproject. org/ref-manual/tasks. html](https://docs. yoctoproject. org/ref-manual/tasks. html)
-- Yocto Project Reference Manual - devtool / recipetool Quick Reference: [https://docs. yoctoproject. org/ref-manual/devtool-reference. html](https://docs. yoctoproject. org/ref-manual/devtool-reference. html)
+- Yocto Project Development Tasks Manual - Writing a New Recipe: [https://docs.yoctoproject.org/dev/dev-manual/new-recipe.html](https://docs.yoctoproject.org/dev/dev-manual/new-recipe.html)
+- Yocto Project Reference Manual - Variables Glossary: [https://docs.yoctoproject.org/ref-manual/variables.html](https://docs.yoctoproject.org/ref-manual/variables.html)
+- Yocto Project Reference Manual - Tasks: [https://docs.yoctoproject.org/ref-manual/tasks.html](https://docs.yoctoproject.org/ref-manual/tasks.html)
+- Yocto Project Reference Manual - devtool / recipetool Quick Reference: [https://docs.yoctoproject.org/ref-manual/devtool-reference.html](https://docs.yoctoproject.org/ref-manual/devtool-reference.html)
 
 
 ## 7.8 進階混合開發: devtool modify / update-recipe / finish
