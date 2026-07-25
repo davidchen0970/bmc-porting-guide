@@ -1571,10 +1571,10 @@ BMC kernel / DTS 額外提醒:
 
 ## 7.4.9 本章參考資料
 
-- BitBake User Manual - Execution: [https://docs. yoctoproject. org/bitbake/bitbake-user-manual/bitbake-user-manual-execution. html](https://docs. yoctoproject. org/bitbake/bitbake-user-manual/bitbake-user-manual-execution. html)
-- BitBake User Manual: [https://docs. yoctoproject. org/bitbake/](https://docs. yoctoproject. org/bitbake/)
-- Yocto Project Reference Manual - Tasks: [https://docs. yoctoproject. org/ref-manual/tasks. html](https://docs. yoctoproject. org/ref-manual/tasks. html)
-- Yocto Project Development Tasks Manual - devtool: [https://docs. yoctoproject. org/dev/dev-manual/devtool. html](https://docs. yoctoproject. org/dev/dev-manual/devtool. html)
+- BitBake User Manual - Execution: [https://docs.yoctoproject.org/bitbake/bitbake-user-manual/bitbake-user-manual-execution.html](https://docs.yoctoproject.org/bitbake/bitbake-user-manual/bitbake-user-manual-execution.html)
+- BitBake User Manual: [https://docs.yoctoproject.org/bitbake/](https://docs.yoctoproject.org/bitbake/)
+- Yocto Project Reference Manual - Tasks: [https://docs.yoctoproject.org/ref-manual/tasks.html](https://docs.yoctoproject.org/ref-manual/tasks.html)
+- Yocto Project Development Tasks Manual - devtool: [https://docs.yoctoproject.org/dev/dev-manual/devtool.html](https://docs.yoctoproject.org/dev/dev-manual/devtool.html)
 
 ## 7.5 使用 . bbappend 修改套件行為
 
