@@ -1,34 +1,35 @@
-# 10. I2C 與 PMBus: 從匯流排到 OpenBMC Sensor
+# 10. I2C、I3C 與 PMBus：從匯流排到 OpenBMC Sensor
 
-I2C 是 BMC 連接感測器、EEPROM、GPIO expander、I2C mux、PSU 與 VR 的常用匯流排. PMBus 則是在 I2C 相容的傳輸基礎上, 定義電源遙測、狀態與控制命令, 常用於 PSU、VR、hot-swap controller 與 power monitor.
+I2C 是 BMC 連接感測器、EEPROM、GPIO expander、I2C mux、PSU 與 VR 的常用匯流排。I3C 延續兩線式匯流排概念，加入動態位址、標準化管理命令與裝置主動通知等能力。PMBus 則在 SMBus／I2C 相容的傳輸基礎上定義電源遙測、狀態與控制命令，常用於 PSU、VR、hot-swap controller 與 power monitor。
 
-本章從 I2C 傳輸與 Linux I2C framework 開始, 接著說明 mux、PMBus driver、hwmon, 以及 OpenBMC 如何將電源資料轉成 D-Bus、Redfish 與 IPMI 資訊.
+本章從 I2C 傳輸開始，補充 I3C 與 I2C 的差異，再說明 Linux I2C framework、mux、PMBus driver、hwmon，以及 OpenBMC 如何將電源資料轉成 D-Bus、Redfish 與 IPMI 資訊。
 
 ## 適用範圍
 
-本章涵蓋 I2C 與 SMBus 基礎、Linux I2C framework、I2C mux、PMBus driver、hwmon、OpenBMC sensor integration、安全排查方式, 以及 fault snapshot 與平台驗證流程.
+本章涵蓋 I2C、I3C 與 SMBus 基礎、Linux I2C framework、I2C mux、PMBus driver、hwmon、OpenBMC sensor integration、安全排查方式，以及 fault snapshot 與平台驗證流程。I3C 部分著重概念、混合匯流排與 Linux porting 邊界，不取代特定 SoC、Kernel 版本或裝置的整合文件。
 
 ## 適用讀者
 
-- 負責 BMC 硬體 bring-up、Linux I2C / PMBus driver、Device Tree、OpenBMC sensor 或平台驗證的人員.
+- 負責 BMC 硬體 bring-up、Linux I2C／I3C／PMBus driver、Device Tree、OpenBMC sensor 或平台驗證的人員。
 - 需要從實體 I2C bus 追查至 hwmon、D-Bus、Redfish 或 IPMI 的開發與排查人員.
 
 ## 快速導覽
 
 - [I2C 基礎](#section-10-1)
-- [SMBus 與 PMBus 的關係](#section-10-2)
-- [Linux I2C Framework](#section-10-3)
-- [Root Adapter 與 Bus Number](#section-10-4)
-- [I2C Client 建立與 Driver 綁定](#section-10-5)
-- [i2c-tools 安全使用](#section-10-6)
-- [I2C Mux 與 Adapter Tree](#section-10-7)
-- [PMBus 基礎與數值格式](#section-10-8)
-- [Linux PMBus Driver Framework](#section-10-9)
-- [Hwmon 與 OpenBMC Sensor](#section-10-10)
-- [安全排查方式](#section-10-13)
-- [PMBus Fault 與 Status](#section-10-14)
-- [Debug Log 收集](#section-10-17)
-- [驗收 Checklist](#section-10-20)
+- [I3C 與 I2C 的差異](#section-10-2)
+- [SMBus 與 PMBus 的關係](#section-10-3)
+- [Linux I2C Framework](#section-10-4)
+- [Root Adapter 與 Bus Number](#section-10-5)
+- [I2C Client 建立與 Driver 綁定](#section-10-6)
+- [i2c-tools 安全使用](#section-10-7)
+- [I2C Mux 與 Adapter Tree](#section-10-8)
+- [PMBus 基礎與數值格式](#section-10-9)
+- [Linux PMBus Driver Framework](#section-10-10)
+- [Hwmon 與 OpenBMC Sensor](#section-10-11)
+- [安全排查方式](#section-10-14)
+- [PMBus Fault 與 Status](#section-10-15)
+- [Debug Log 收集](#section-10-18)
+- [驗收 Checklist](#section-10-21)
 
 <a id="section-10-1"></a>
 
@@ -93,7 +94,7 @@ flowchart TB
 - `START` 表示傳輸開始.
 - `STOP` 表示傳輸結束.
 - `ACK` 表示接收方接受上一個 byte.
-- `NACK` 表示未接受、沒有裝置回應, 或讀取方準備結束傳輸.
+- `NACK` 的意義取決於出現位置：address phase 的 NACK 通常表示沒有 target 回應或 target 暫時無法接受交易；write data phase 的 NACK 表示 target 不接受該 byte；read transaction 最後一個 byte 之後由 controller 送出的 NACK，則是正常的讀取結束通知。
 - Repeated START 讓 controller 在不釋放 bus 的情況下改變傳輸方向.
 
 ### 10.1.3 7-bit Address 與 8-bit 表示法
@@ -152,7 +153,153 @@ Bus stuck 常見情況:
 
 <a id="section-10-2"></a>
 
-## 10.2 SMBus 是什麼
+## 10.2 I3C 與 I2C 的差異
+
+I3C 是 MIPI Alliance 定義的兩線式匯流排。它沿用 `SCL` 與 `SDA` 的基本連線概念，並針對裝置識別、位址管理、傳輸效率與事件通知加入新的協定能力。I3C 不是單純把 I2C clock 調快，也不能只因接腳相同就假設所有 I2C target 都可直接放入任意 I3C bus。
+
+### 10.2.1 快速比較
+
+| 項目 | I2C | I3C |
+|---|---|---|
+| 主要訊號 | `SCL`、`SDA` | `SCL`、`SDA` |
+| 位址 | 常見為固定 7-bit address | 支援 static address 與 dynamic address |
+| 位址配置 | Strap、固定值、register 或平台描述 | Controller 可透過 DAA 分配 dynamic address |
+| 匯流排管理 | 沒有統一的通用管理命令集 | 使用 CCC 管理 bus 與 targets |
+| Target 主動通知 | 通常使用額外 IRQ GPIO 或由 controller polling | 支援 IBI，事件可在 bus 內傳送 |
+| 裝置識別 | 主要依賴 address 與平台描述 | 可使用 PID、BCR、DCR 等標準資訊 |
+| 電氣驅動 | 主要為 open-drain | 依傳輸階段使用 open-drain 或 push-pull |
+| Legacy 相容性 | 原生 I2C | 可在符合條件時與部分 legacy I2C targets 共存 |
+| Linux 生態 | framework 與 userspace tools 成熟 | 需確認 controller driver、target driver、Kernel 與 userspace 支援 |
+
+### 10.2.2 Dynamic Address Assignment
+
+I2C target 通常使用固定位址。如果相同位址的裝置位於同一 bus segment，平台常需要 address strap、mux、enable GPIO 或不同 bus 來避開衝突。
+
+I3C target 可具有 static address，也可由 controller 執行 DAA，取得 dynamic address。常見流程如下：
+
+```mermaid
+flowchart TB
+    A["I3C Controller 啟動 bus"] --> B["必要時送出 RSTDAA"]
+    B --> C["送出 ENTDAA"]
+    C --> D["尚未定址的 I3C targets 參與仲裁"]
+    D --> E["Target 回報 PID、BCR、DCR"]
+    E --> F["Controller 分配 dynamic address"]
+```
+
+常見 CCC 包括：
+
+- `RSTDAA`：Reset Dynamic Address Assignment，清除或重設既有的 dynamic address assignment。
+- `ENTDAA`：Enter Dynamic Address Assignment，開始動態位址分配流程。
+
+`RSTDAA` 的重點是重設 dynamic address，不應簡化成「讓 I3C 裝置切回 I2C mode」。裝置仍是 I3C capable target，只是後續需要重新取得 dynamic address。實際 reset 行為仍要依裝置規格與 bus 狀態確認。
+
+### 10.2.3 CCC
+
+CCC（Common Command Code）是 I3C 的標準管理命令，可分為 broadcast CCC 與 direct CCC：
+
+- Broadcast CCC 對符合條件的多個 targets 生效。
+- Direct CCC 對指定 dynamic address 的 target 操作。
+- 裝置私有 register protocol 仍可存在，CCC 不等於所有裝置功能都被完全標準化。
+
+使用 CCC 前必須確認 controller driver 與 target driver 是否實作對應命令。只有硬體宣稱支援 I3C，不代表 Linux userspace 已提供直接發送所有 CCC 的穩定介面。
+
+### 10.2.4 IBI
+
+IBI（In-Band Interrupt）讓 I3C target 使用同一條 bus 向 controller 提出事件。相較於每顆 I2C sensor 都配置獨立 IRQ GPIO，IBI 可減少 GPIO 與走線需求，也可降低持續 polling 的負擔。
+
+```text
+傳統 I2C：Target -- IRQ GPIO --> Controller
+                     + SDA/SCL
+
+I3C：     Target -- IBI over SDA/SCL --> Controller
+```
+
+IBI 不是無條件可用。Controller、target、driver、interrupt policy 與 payload handling 都必須支援，系統也要處理 IBI 排程、流量與錯誤情況。
+
+### 10.2.5 PID、BCR、DCR 與 LVR
+
+I3C 裝置識別與能力描述常涉及：
+
+- `PID`（Provisional ID）：48-bit 裝置識別資訊，DAA 時可用來區分 targets。
+- `BCR`（Bus Characteristics Register）：描述 target 的 bus 能力與行為特性。
+- `DCR`（Device Characteristics Register）：描述 target 的裝置類別。
+- `LVR`（Legacy I2C Virtual Register）：由 controller 用來描述 legacy I2C target 的相關 bus 特性，不應解釋成 I2C 裝置內一定存在的實體 register。
+
+若 DTS 或 driver 要描述 I3C target，應以目前 Kernel binding 與裝置規格為準，不應只從 PID 的外觀推導所有欄位。
+
+### 10.2.6 Open-Drain 與 Push-Pull
+
+I2C 主要使用 open-drain，由 pull-up resistor 讓線路回到高電位。I3C 在需要共享、仲裁或相容性的階段仍可使用 open-drain，其他資料傳輸階段則可使用 push-pull，以改善上升時間與傳輸效率。
+
+因此 I3C 的電氣特性不是「整條 bus 永遠 push-pull」。設計時仍需評估：
+
+- Pull-up 與 I3C controller 的電氣要求。
+- Legacy I2C target 的電壓與 spike filter 特性。
+- Bus capacitance、走線、connector 與 level shifter。
+- 混合 bus 可接受的最高速度。
+- Hot-plug、power-off leakage 與 unpowered target 行為。
+
+### 10.2.7 Mixed Bus 與 Legacy I2C Targets
+
+I3C 可支援混合式 bus，但必須確認：
+
+1. I3C controller 支援 legacy I2C targets。
+2. I2C target 的 address 不與 I3C reserved address rules 衝突。
+3. I2C target 的電氣與時序特性符合 mixed-bus 要求。
+4. Level shifter、mux 或 buffer 明確支援預定模式。
+5. DTS／ACPI 能正確區分 I3C target 與 legacy I2C target。
+6. 所有裝置在 bus 初始化、reset、hot-plug 與 power cycle 後都能恢復。
+
+相同的 `SCL`／`SDA` 接腳只代表接線形式相似，不代表協定與電氣行為必然相容。
+
+### 10.2.8 Linux I3C Porting
+
+Linux I3C 整合建議依下列層次檢查：
+
+```mermaid
+flowchart TB
+    A["SoC I3C controller 與 pinmux"] --> B["Kernel I3C master controller driver"]
+    B --> C["DTS / firmware description"]
+    C --> D["Bus initialization 與 DAA"]
+    D --> E["I3C target driver match / probe"]
+    E --> F["Kernel subsystem 或 userspace interface"]
+```
+
+Bring-up 時至少確認：
+
+- SoC controller、clock、reset、IRQ、DMA 與 pinctrl。
+- Kernel config 與 controller driver 是否支援該 SoC revision。
+- DAA 的執行時機，以及 target 在 DAA 當下是否已供電並解除 reset。
+- Target 的 PID、BCR、DCR、static address 與 dynamic address。
+- IBI、CCC、hot-join 與 error recovery 是否被平台使用及支援。
+- Legacy I2C targets 是否以正確方式宣告。
+
+### 10.2.9 何時使用 I2C 或 I3C
+
+優先考慮 I2C 的情境：
+
+- Target 只支援 I2C。
+- 頻寬與 latency 要求不高。
+- 現有 BSP、driver 與測試工具已完整驗證。
+- 專案重視相容性、維護成本與快速整合。
+
+優先評估 I3C 的情境：
+
+- 需要 dynamic address assignment。
+- 希望使用 IBI 減少 IRQ GPIO 或 polling。
+- 需要較高傳輸效率與標準化 bus management。
+- Controller、targets、硬體拓樸、Kernel driver 與上層軟體均已支援。
+
+一句話總結：
+
+```text
+I2C：成熟、簡單、固定地址為主。
+I3C：保留兩線式架構，加入動態位址、CCC、IBI 與較高效率。
+```
+
+<a id="section-10-3"></a>
+
+## 10.3 SMBus 是什麼
 
 SMBus(System Management Bus)是以 I2C 為基礎發展的系統管理通訊規範. 它使用相同概念的 SDA、SCL、address、START、STOP 與 ACK / NACK, 但進一步定義常用的傳輸格式、逾時條件與錯誤檢查方式.
 
@@ -199,7 +346,7 @@ PEC(Packet Error Checking)是在傳輸資料末尾加入 CRC byte, 用來檢查 
 
 ### 10.2.3 SMBus 與 PMBus 的關係
 
-PMBus 沒有重新建立一套底層匯流排, 而是使用 I2C 相容的電氣與傳輸方式, 並沿用 SMBus 的 byte、word 與 block transactions. 在這些傳輸格式上, PMBus 定義電源管理 commands, 例如:
+PMBus 沒有重新建立一套新的實體匯流排；它通常使用 SMBus 定義的電氣、時序與 transaction model，而 SMBus 本身建立在 I2C 的兩線式傳輸概念上。在這些 transactions 之上，PMBus 定義電源管理 commands，例如：
 
 - `READ_VIN`
 - `READ_VOUT`
@@ -209,9 +356,9 @@ PMBus 沒有重新建立一套底層匯流排, 而是使用 I2C 相容的電氣�
 
 因此, SMBus 負責定義「資料怎麼傳」, PMBus 則進一步定義「command 代表什麼電源功能」.
 
-<a id="section-10-3"></a>
+<a id="section-10-4"></a>
 
-## 10.3 Linux I2C Framework
+## 10.4 Linux I2C Framework
 
 Linux I2C framework 主要使用 adapter、client 與 driver 表示一條 bus、bus 上的裝置, 以及控制裝置的程式.
 
@@ -308,9 +455,9 @@ flowchart TB
 
 若最終 OpenBMC 沒有 sensor, 應依此順序確認, 而不是直接從 D-Bus 設定開始修改.
 
-<a id="section-10-4"></a>
+<a id="section-10-5"></a>
 
-## 10.4 Root Adapter 與 Linux Bus Number
+## 10.5 Root Adapter 與 Linux Bus Number
 
 Root adapter 通常對應 SoC 的一個 I2C controller, 但 Linux bus number 不一定等於 schematic 上的 controller 編號.
 
@@ -372,9 +519,9 @@ $ cat /sys/bus/i2c/devices/i2c-20/name
 
 如果 OpenBMC config 必須使用 bus number, 需驗證 BMC reboot、kernel 更新、driver 改為 module, 以及其他 mux 加入後是否仍穩定.
 
-<a id="section-10-5"></a>
+<a id="section-10-6"></a>
 
-## 10.5 I2C Client 如何建立
+## 10.6 I2C Client 如何建立
 
 I2C 無法像 PCI 一樣, 安全地從 bus 自動得知每個裝置的完整型號. 因此 kernel 通常需要明確資訊, 才能建立 client.
 
@@ -388,7 +535,7 @@ I2C 無法像 PCI 一樣, 安全地從 bus 自動得知每個裝置的完整型�
     bus-frequency = <100000>;
 
     temperature-sensor@48 {
-        compatible = "ti,pmbus";
+        compatible = "vendor,example-temperature-sensor";
         reg = <0x48>;
     };
 
@@ -400,7 +547,7 @@ I2C 無法像 PCI 一樣, 安全地從 bus 自動得知每個裝置的完整型�
 };
 ```
 
-I2C controller 建立 adapter 後, I2C core 讀取 child nodes, 建立 address `0x58` 的 PSU client.
+I2C controller 建立 adapter 後，I2C core 讀取 child nodes，分別建立 address `0x48` 的 temperature sensor client 與 address `0x50` 的 EEPROM client。`compatible` 必須替換成實際晶片對應的 binding，不能只用功能類型猜測。
 
 ### 10.5.2 暫時使用 `new_device`
 
@@ -464,9 +611,9 @@ $ cat /sys/bus/i2c/devices/5-0048/modalias
 → Driver 已完成綁定
 ```
 
-<a id="section-10-6"></a>
+<a id="section-10-7"></a>
 
-## 10.6 `i2c-tools` 如何使用
+## 10.7 `i2c-tools` 如何使用
 
 `i2c-tools` 常用於確認 adapters、addresses 與簡單的 transactions, 但它會直接透過 `/dev/i2c-N` 存取 bus. 使用前需知道裝置型號、command 定義與目前是否已有 kernel driver 綁定.
 
@@ -509,9 +656,9 @@ $ i2cdetect -y 5
 
 在 PMBus、EEPROM、CPLD 與 power controller 上, 應先建立可讀 / 可寫 command 清單, 再使用 raw tools.
 
-<a id="section-10-7"></a>
+<a id="section-10-8"></a>
 
-## 10.7 I2C Mux 與 Adapter Tree
+## 10.8 I2C Mux 與 Adapter Tree
 
 I2C mux 讓一條 parent bus 切換到多個下游 channels. BMC 常用 mux 隔離相同 address 的裝置, 例如 PSU0 與 PSU1 都使用 `0x58`.
 
@@ -605,9 +752,9 @@ $ readlink -f /sys/bus/i2c/devices/i2c-20/device
 $ dmesg | grep -Ei 'i2c.*mux|pca954|mux'
 ```
 
-<a id="section-10-8"></a>
+<a id="section-10-9"></a>
 
-## 10.8 PMBus 是什麼
+## 10.9 PMBus 是什麼
 
 PMBus 是用來管理電源裝置的通訊規範, 常見於:
 
@@ -685,9 +832,9 @@ LINEAR11 通常把 exponent 與 mantissa 放在同一個 16-bit word. LINEAR16 �
 
 因此, 同一個 raw word 若使用錯誤格式解讀, 可能得到完全不同的數值. Driver 必須知道每一類 sensor 使用的格式、page 與 coefficients.
 
-<a id="section-10-9"></a>
+<a id="section-10-10"></a>
 
-## 10.9 Linux PMBus Driver Framework
+## 10.10 Linux PMBus Driver Framework
 
 Linux PMBus drivers 位於 hwmon 架構中. 它們通常分為:
 
@@ -752,9 +899,9 @@ Generic `pmbus` driver 適合按照標準 PMBus 行為提供 telemetry 的裝置
 - Suspend、remove、hot-plug 與 error handling.
 - 是否適合提交 upstream.
 
-<a id="section-10-10"></a>
+<a id="section-10-11"></a>
 
-## 10.10 PMBus 如何變成 Hwmon 資料
+## 10.11 PMBus 如何變成 Hwmon 資料
 
 PMBus driver probe 成功後, PMBus core 會依 driver 宣告的能力建立 hwmon attributes.
 
@@ -809,9 +956,9 @@ $ done
 
 Sensor name、threshold、Redfish mapping 與 IPMI SDR 都需保留原始物理意義.
 
-<a id="section-10-11"></a>
+<a id="section-10-12"></a>
 
-## 10.11 OpenBMC 如何使用 PMBus Sensor
+## 10.12 OpenBMC 如何使用 PMBus Sensor
 
 OpenBMC sensor service 讀取 hwmon attributes, 再依平台設定建立 D-Bus sensors.
 
@@ -858,9 +1005,9 @@ PSU 拔除、power rail 關閉或 bus timeout 時, 不應把讀取失敗轉成�
 
 Presence、power state、driver read error 與 sensor threshold 是不同事件來源, 應分開處理.
 
-<a id="section-10-12"></a>
+<a id="section-10-13"></a>
 
-## 10.12 Device Tree、Driver 與 OpenBMC 設定的分工
+## 10.13 Device Tree、Driver 與 OpenBMC 設定的分工
 
 | 資料 | 建議位置 |
 |---|---|
@@ -874,9 +1021,9 @@ Presence、power state、driver read error 與 sensor threshold 是不同事件�
 
 固定的硬體接線放在 DTS; 裝置本身的通訊與資料格式放在 driver; 顯示名稱、threshold、slot 與控制規則放在 OpenBMC userspace.
 
-<a id="section-10-13"></a>
+<a id="section-10-14"></a>
 
-## 10.13 I2C 與 PMBus 的安全排查方式
+## 10.14 I2C 與 PMBus 的安全排查方式
 
 I2C / PMBus 排查應由拓樸與唯讀狀態開始, 再逐步進行 raw transactions.
 
@@ -944,9 +1091,9 @@ Service names 會依 OpenBMC branch 與產品整合方式不同, 應先用 `syst
 
 任何 write command, 尤其 `OPERATION`、margin、fault limit、store / restore、reset 與 `CLEAR_FAULTS`, 都需有明確審核與回復方式.
 
-<a id="section-10-14"></a>
+<a id="section-10-15"></a>
 
-## 10.14 PMBus Fault 與 Status
+## 10.15 PMBus Fault 與 Status
 
 PMBus status registers 可用來判斷 fault 類型, 但讀取與清除順序會影響事後分析.
 
@@ -984,9 +1131,9 @@ flowchart TB
 
 三者可能相關, 但不是同一層. 文件與 event log 應標示事件來源.
 
-<a id="section-10-15"></a>
+<a id="section-10-16"></a>
 
-## 10.15 Kernel Config 與 Yocto 整合
+## 10.16 Kernel Config 與 Yocto 整合
 
 需要確認的 kernel functions 可能包括:
 
@@ -1017,9 +1164,9 @@ $ find tmp/work -path '*linux*' -name '.config' -print
 
 若 driver 編成 module, 還要確認 module package 有加入 image, 且在 OpenBMC sensor service 啟動前可完成載入與 probe.
 
-<a id="section-10-16"></a>
+<a id="section-10-17"></a>
 
-## 10.16 常見問題與判讀
+## 10.17 常見問題與判讀
 
 | 現象 | 流程大約停在哪裡 | 優先檢查 |
 |---|---|---|
@@ -1035,9 +1182,9 @@ $ find tmp/work -path '*linux*' -name '.config' -print
 | Bus 偶發 timeout | Electrical / timing | Clock stretching、capacitance、hot-plug、multi-controller |
 | Clear 後無法判斷 fault | Status 保存流程 | Clear 前保存完整 snapshot |
 
-<a id="section-10-17"></a>
+<a id="section-10-18"></a>
 
-## 10.17 Target 端 Debug Log 收集
+## 10.18 Target 端 Debug Log 收集
 
 以下腳本以蒐集狀態為主, 不執行 bus scan、raw command 或 fault clear:
 
@@ -1086,11 +1233,11 @@ tar czf "/tmp/i2c-pmbus-debug-$(date +%Y%m%d-%H%M%S).tar.gz" \
 
 執行前需確認儲存空間與平台資料管理要求. 若要加入 raw PMBus status, 應針對已核准的裝置與 commands 另外建立腳本, 不應在通用收集腳本中掃描所有 commands.
 
-<a id="section-10-18"></a>
+<a id="section-10-19"></a>
 
-## 10.18 Bring-up 順序
+## 10.19 Bring-up 順序
 
-1. 整理 physical topology: controller、mux、channel、address、pull-up、power domain.
+1. 整理 physical topology：controller、mux、channel、address、pull-up、power domain；若為 I3C，另記錄 static／dynamic address、PID 與 legacy I2C targets。
 2. 在 DTS 啟用 root controller.
 3. 確認 root adapter 出現在 `i2cdetect -l`.
 4. 加入並驗證 mux client.
@@ -1106,9 +1253,9 @@ tar czf "/tmp/i2c-pmbus-debug-$(date +%Y%m%d-%H%M%S).tar.gz" \
 14. 保存 waveform、status snapshot、kernel / service log 與版本資訊.
 
 
-<a id="section-10-19"></a>
+<a id="section-10-30"></a>
 
-## 10.19 平台拓樸與實測紀錄表
+## 10.20 平台拓樸與實測紀錄表
 
 | 項目 | 來源 / 指令 | 實測值 | 備註 |
 |---|---|---|---|
@@ -1128,9 +1275,9 @@ tar czf "/tmp/i2c-pmbus-debug-$(date +%Y%m%d-%H%M%S).tar.gz" \
 | Fault snapshot | `STATUS_*` | [待填] | Clear 前保存 |
 | Bus recovery | Fault test | [待填] | Recovery result |
 
-<a id="section-10-20"></a>
+<a id="section-10-31"></a>
 
-## 10.20 驗收 Checklist
+## 10.21 驗收 Checklist
 
 I2C 與拓樸:
 
@@ -1140,7 +1287,8 @@ I2C 與拓樸:
 - [ ] 所有 clients 使用 7-bit address.
 - [ ] 同一 bus segment 沒有 address conflict.
 - [ ] Bus speed、pull-up 與 signal integrity 符合所有裝置需求.
-- [ ] Multi-controller、clock stretching 與 bus recovery 已確認.
+- [ ] Multi-controller、clock stretching 與 bus recovery 已確認。
+- [ ] 若使用 I3C，DAA、CCC、IBI、reserved addresses、mixed-bus 相容性與 dynamic address 重新分配已驗證。
 
 Driver 與 PMBus:
 
@@ -1161,25 +1309,28 @@ OpenBMC 與 Fault:
 - [ ] Bus timeout、stuck、mux reset、hot-plug 與 service restart 已測試.
 - [ ] Debug log、waveform、PMBus status 與版本資訊已保存.
 
-<a id="section-10-21"></a>
+<a id="section-10-32"></a>
 
-## 10.21 本章重點
+## 10.22 本章重點
 
 1. I2C adapter 代表一條 Linux 可執行 transfer 的 bus.
 2. I2C client 代表某條 adapter 上某個 7-bit address 的裝置.
 3. I2C driver 與 client 配對後, 由 I2C core 呼叫 probe.
 4. Root adapter 由 SoC controller driver 建立; mux channels 會建立 child adapters.
 5. Linux bus number 不一定等於 schematic bus number, 也可能隨拓樸與 probe 順序改變.
-6. PMBus 使用 I2C 相容的傳輸, 並沿用 SMBus 的 byte、word 與 block transactions.
-7. PMBus command 標準化不代表每顆裝置都支援所有 commands.
-8. PMBus page、phase 與資料格式錯誤都可能造成 sensor mapping 或數值錯誤.
-9. Hwmon 是 PMBus driver 與 OpenBMC sensor service 之間的主要共同介面.
-10. Raw I2C / PMBus access 應放在拓樸、driver 與 hwmon 檢查之後, 任何 write command 都需先確認影響.
+6. I3C 不只是高速 I2C；它增加 DAA、CCC、IBI、PID／BCR／DCR 與不同的電氣傳輸階段。
+7. PMBus 通常使用 SMBus transaction model，而 SMBus 建立在 I2C 的兩線式傳輸概念上。
+8. PMBus command 標準化不代表每顆裝置都支援所有 commands.
+9. PMBus page、phase 與資料格式錯誤都可能造成 sensor mapping 或數值錯誤.
+10. Hwmon 是 PMBus driver 與 OpenBMC sensor service 之間的主要共同介面.
+11. Raw I2C / PMBus access 應放在拓樸、driver 與 hwmon 檢查之後, 任何 write command 都需先確認影響.
 
-<a id="section-10-22"></a>
+<a id="section-10-33"></a>
 
-## 10.22 本章參考資料
+## 10.23 本章參考資料
 
+- MIPI I3C overview: https://www.mipi.org/specifications/i3c-sensor-specification
+- Linux kernel documentation - I3C subsystem: https://docs.kernel.org/driver-api/i3c/
 - Linux kernel documentation - I2C and SMBus Subsystem: https://docs.kernel.org/i2c/
 - Linux kernel documentation - Introduction to I2C and SMBus: https://docs.kernel.org/i2c/summary.html
 - Linux kernel documentation - I2C Device Instantiation: https://docs.kernel.org/i2c/instantiating-devices.html
@@ -1189,3 +1340,5 @@ OpenBMC 與 Fault:
 - Linux kernel documentation - PMBus Core: https://docs.kernel.org/hwmon/pmbus-core.html
 - Linux kernel documentation - Hardware Monitoring: https://docs.kernel.org/hwmon/
 - PMBus Specifications: https://pmbus.org/specification-archives/
+
+- 強化 SMBus 與 PMBus 的分層關係，避免把 PMBus 描述成只是在任意 I2C transfer 上加 command。
