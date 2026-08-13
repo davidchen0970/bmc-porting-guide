@@ -500,7 +500,6 @@ Product state：Present = true
 
 <mark>關鍵訊號應先看 Schematic 上的 external pull。SoC internal pull 可能較弱，而且 reset 初期不一定生效。</mark>
 
-
 > <mark>檢閱提醒：Pull-down disable 只代表移除內部下拉，不代表該腳位一定進入 Hi-Z。是否為 Hi-Z / floating input，需同時確認 Pinmux、GPIO direction、output driver 是否啟用，以及外部是否有 pull、buffer、CPLD 或其他 device 正在驅動。</mark>
 
 ### 3.4.6 Output 的安全初始值
@@ -1952,7 +1951,6 @@ i2cdetect -l
 ls -l /sys/bus/i2c/devices/i2c-*/device 2>/dev/null
 find /sys/bus/i2c/devices -maxdepth 2 -name name -print -exec cat {} \; 2>/dev/null
 ```
-
 
 Linux 的 `i2c-N` 是 runtime adapter number，不等於 DTS label 中的數字。例如 `&i2c7` 是 source DTS label，進入 DTB 後通常不保留該 label；若中間有 I2C mux，child adapter number 也可能由 runtime 動態分配。
 

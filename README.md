@@ -37,33 +37,33 @@ Languages: README.md | [中文](README.zh-TW.md)
 
 ### Part 5: Management Interfaces and Networking
 
-- [MCTP, PLDM, and SPDM](05_part_5_management_interfaces_and_networking/20_mctp_pldm_spdm.md)
-- [IPMI Fundamentals](05_part_5_management_interfaces_and_networking/21_ipmi_fundamentals.md)
-- [Redfish Fundamentals](05_part_5_management_interfaces_and_networking/22_redfish_fundamentals.md)
-- [Network Services](05_part_5_management_interfaces_and_networking/23_network_services.md)
+- [MCTP, PLDM, and SPDM](05_part_5_management_interfaces_and_networking/21_mctp_pldm_spdm.md)
+- [IPMI Fundamentals](05_part_5_management_interfaces_and_networking/22_ipmi_fundamentals.md)
+- [Redfish Fundamentals](05_part_5_management_interfaces_and_networking/23_redfish_fundamentals.md)
+- [Network Services](05_part_5_management_interfaces_and_networking/24_network_services.md)
 
 ### Part 6: Security and Firmware Maintenance
 
-- [Security Baseline](06_part_6_security_and_firmware_maintenance/24_security_baseline.md)
-- [Firmware Update](06_part_6_security_and_firmware_maintenance/25_firmware_update.md)
-- [Secure Recovery, RMA, and Field Service](06_part_6_security_and_firmware_maintenance/26_secure_recovery_rma_and_field_service.md)
+- [Security Baseline](06_part_6_security_and_firmware_maintenance/25_security_baseline.md)
+- [Firmware Update](06_part_6_security_and_firmware_maintenance/26_firmware_update.md)
+- [Secure Recovery, RMA, and Field Service](06_part_6_security_and_firmware_maintenance/27_secure_recovery_rma_and_field_service.md)
 
 ### Part 7: Debugging, Performance, and Testing
 
-- [Debug Methodology](07_part_7_debugging_performance_and_testing/27_debug_methodology.md)
-- [Debug Toolkit](07_part_7_debugging_performance_and_testing/28_debug_toolkit.md)
-- [Common Sensor Debug Commands and Appendix](07_part_7_debugging_performance_and_testing/29_common_sensor_debug_commands_and_appendix.md)
-- [Performance, Resource, and Boot Time](07_part_7_debugging_performance_and_testing/30_performance_resource_and_boot_time.md)
-- [General Test Matrix](07_part_7_debugging_performance_and_testing/31_general_test_matrix.md)
+- [Debug Methodology](07_part_7_debugging_performance_and_testing/28_debug_methodology.md)
+- [Debug Toolkit](07_part_7_debugging_performance_and_testing/29_debug_toolkit.md)
+- [Common Sensor Debug Commands and Appendix](07_part_7_debugging_performance_and_testing/30_common_sensor_debug_commands_and_appendix.md)
+- [Performance, Resource, and Boot Time](07_part_7_debugging_performance_and_testing/31_performance_resource_and_boot_time.md)
+- [General Test Matrix](07_part_7_debugging_performance_and_testing/32_general_test_matrix.md)
 
 ### Part 8: Manufacturing and Production
 
-- [Manufacturing and Factory](08_part_8_manufacturing_and_production/32_manufacturing_and_factory.md)
-- [Calibration, Board Data, and Provisioning](08_part_8_manufacturing_and_production/33_calibration_board_data_and_provisioning.md)
+- [Manufacturing and Factory](08_part_8_manufacturing_and_production/33_manufacturing_and_factory.md)
+- [Calibration, Board Data, and Provisioning](08_part_8_manufacturing_and_production/34_calibration_board_data_and_provisioning.md)
 
 ### Part 9: Platform-Specific Notes
 
-- [SoC Notes Template](09_part_9_platform_specific_notes/34_soc_notes_template.md)
+- [SoC Notes Template](09_part_9_platform_specific_notes/35_soc_notes_template.md)
 
 ### Part 10: Appendices
 

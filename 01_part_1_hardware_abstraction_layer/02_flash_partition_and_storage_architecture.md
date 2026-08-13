@@ -118,7 +118,6 @@ UBI volume 是 UBI device 內切分出的邏輯儲存空間. 它可以儲存 Squ
 
 ### 2.1.6 參考
 
-
 ```mermaid
 flowchart TB
 
@@ -130,7 +129,6 @@ flowchart TB
         IMG5["MANIFEST<br/>Version / Machine / Verify"]
     end
 
-
     subgraph L4["Runtime Filesystem Layer"]
         FS1["SquashFS<br/>Readonly rootfs"]
         FS2["UBIFS<br/>Writable filesystem"]
@@ -138,7 +136,6 @@ flowchart TB
         FS4["ext4<br/>Block storage filesystem"]
         FS5["OverlayFS<br/>Lower + Upper merge"]
     end
-
 
     subgraph L3["Logical Storage Layer"]
         UBI["UBI Device<br/>ubi0"]
@@ -152,7 +149,6 @@ flowchart TB
         UBI --> VOL3
     end
 
-
     subgraph L2["Partition Layer"]
         MTD["MTD partitions<br/>raw flash"]
 
@@ -162,7 +158,6 @@ flowchart TB
         P4["mtd3<br/>rootfs"]
         P5["mtd4<br/>rwfs"]
 
-
         GPT["GPT partitions<br/>block device"]
 
         G1["mmcblk0p1<br/>boot"]
@@ -170,7 +165,6 @@ flowchart TB
         G3["mmcblk0p3<br/>rootfs-b"]
         G4["mmcblk0p4<br/>rw-data"]
     end
-
 
     subgraph L1["Physical Storage Layer"]
         NOR["SPI-NOR<br/>MTD"]
@@ -180,14 +174,12 @@ flowchart TB
         SSD["SATA / NVMe"]
     end
 
-
     NOR --> MTD
     NAND --> MTD
 
     EMMC --> GPT
     SD --> GPT
     SSD --> GPT
-
 
     MTD --> P1
     MTD --> P2
@@ -200,7 +192,6 @@ flowchart TB
     GPT --> G3
     GPT --> G4
 
-
     P4 --> UBI
 
     VOL1 --> FS1
@@ -210,7 +201,6 @@ flowchart TB
     G2 --> FS4
     G3 --> FS4
     G4 --> FS4
-
 
     FS1 --> FS5
     FS2 --> MOUNT["Linux Mount<br/>/ /var /data"]
@@ -1744,8 +1734,8 @@ tar czf "/tmp/storage-debug-$(date +%Y%m%d-%H%M%S).tar.gz" \
 
 - Linux kernel documentation - UBIFS: https://docs.kernel.org/filesystems/ubifs.html
 - Linux kernel documentation - OverlayFS: https://docs.kernel.org/filesystems/overlayfs.html
-- Linux MTD project - UBIFS FAQ and HOWTO: http://linux-mtd.infradead.org/faq/ubifs.html
-- OpenBMC Flash Layout documentation: https://github.com/openbmc/docs/blob/master/architecture/code-update/flash-layout.md
-- OpenBMC Code Update documentation: https://github.com/openbmc/docs/blob/master/architecture/code-update/code-update.md
+- Linux MTD project - UBIFS FAQ and HOWTO: https://linux-mtd.infradead.org/faq/ubifs.html
+- OpenBMC Flash Layout documentation: https://github.com/openbmc/docs/tree/master/architecture/code-update
+- OpenBMC Code Update documentation: https://github.com/openbmc/docs/tree/master/architecture/code-update
 - U-Boot documentation: https://docs.u-boot.org/
 - Yocto Project Reference Manual: https://docs.yoctoproject.org/ref-manual/

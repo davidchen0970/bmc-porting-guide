@@ -890,7 +890,7 @@ Brownout / rail fault，限核准測試環境
 
 ## 4.16 本章參考資料
 - Linux kernel documentation - Reset controller API: https://www.kernel.org/doc/html/latest/driver-api/reset.html
-- Linux kernel documentation - Reset Device Tree bindings: https://www.kernel.org/doc/Documentation/devicetree/bindings/reset/
+- Linux kernel documentation - Reset Device Tree bindings: https://docs.kernel.org/devicetree/bindings/reset/
 - Linux kernel documentation - Common Clock Framework: https://www.kernel.org/doc/html/latest/driver-api/clk.html
 - Linux kernel documentation - Regulator framework overview: https://docs.kernel.org/power/regulator/overview.html
 - Linux kernel documentation - Voltage and current regulator API: https://docs.kernel.org/driver-api/regulator.html

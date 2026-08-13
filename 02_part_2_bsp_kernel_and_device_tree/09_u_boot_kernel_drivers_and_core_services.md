@@ -39,8 +39,6 @@ flowchart TB
 
 本章先說明U-Boot的多階段架構, Driver Model, Device Tree, environment與映像載入, 再進入Linux Kernel的device, driver, probe, subsystem與OpenBMC服務.
 
-
-
 ## 9.1 U-Boot 是什麼
 
 U-Boot(Das U-Boot)是嵌入式系統常見的開機載入程式家族. 它的核心任務是把平台從"SoC 剛離開 reset, 可用資源非常有限"帶到"Linux kernel 或其他 payload 已經載入記憶體, 而且具備啟動所需參數"的狀態.
@@ -2130,7 +2128,6 @@ tar czf "/tmp/kernel-driver-debug-$(date +%Y%m%d-%H%M%S).tar.gz" \
 11. 測試 service restart, BMC reboot, AC cycle, host state transition.
 12. 保存 DTS, kernel, image 版本與 log.
 
-
 ## 9.28 平台實測紀錄表
 
 | 項目            | 指令 / 來源             | 實測值   | 備註                       |
@@ -2208,7 +2205,6 @@ tar czf "/tmp/kernel-driver-debug-$(date +%Y%m%d-%H%M%S).tar.gz" \
 - U-Boot Board Initialisation Flow: https://docs.u-boot.org/en/stable/develop/init.html
 - U-Boot Device Tree Control: https://docs.u-boot.org/en/latest/develop/devicetree/control.html
 - U-Boot Packaging與Binman: https://docs.u-boot.org/en/latest/develop/package/index.html
-
 
 - Linux kernel documentation - Driver Model: https://docs.kernel.org/driver-api/driver-model/index.html
 - Linux kernel documentation - Device Drivers: https://docs.kernel.org/driver-api/driver-model/driver.html

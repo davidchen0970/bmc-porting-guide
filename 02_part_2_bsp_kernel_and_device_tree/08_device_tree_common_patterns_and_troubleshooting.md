@@ -2073,7 +2073,6 @@ flowchart TB
     D <--> E["Redfish / IPMI 顯示"]
 ```
 
-
 <a id="section-8-14"></a>
 
 ## 8.14 平台實測紀錄表

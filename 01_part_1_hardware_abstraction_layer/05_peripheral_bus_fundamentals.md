@@ -912,6 +912,13 @@ OpenBMC 與安全:
 
 ## 5.28 本章參考資料
 
-- Linux kernel documentation - I2C: https://docs.kernel.org/i2c/- Linux kernel documentation - SPI:https://docs.kernel.org/spi/- Linux kernel documentation - Serial:https://docs.kernel.org/driver-api/serial/- Linux kernel documentation - IIO:https://docs.kernel.org/driver-api/iio/- Linux kernel documentation - Hwmon:https://docs.kernel.org/hwmon/- Linux kernel documentation - PECI:https://docs.kernel.org/peci/- Linux kernel documentation - MCTP:https://docs.kernel.org/networking/mctp.html
-- Linux kernel networking documentation:https://docs.kernel.org/networking/- DMTF PMCI standards:https://www.dmtf.org/standards/pmci
+- Linux kernel documentation - I2C: https://docs.kernel.org/i2c/
+- Linux kernel documentation - SPI:https://docs.kernel.org/spi/
+- Linux kernel documentation - Serial:https://docs.kernel.org/driver-api/serial/
+- Linux kernel documentation - IIO:https://docs.kernel.org/driver-api/iio/
+- Linux kernel documentation - Hwmon:https://docs.kernel.org/hwmon/
+- Linux kernel documentation - PECI:https://docs.kernel.org/peci/
+- Linux kernel documentation - MCTP:https://docs.kernel.org/networking/mctp.html
+- Linux kernel networking documentation:https://docs.kernel.org/networking/
+- DMTF PMCI standards:https://www.dmtf.org/standards/pmci
 - OpenBMC documentation:https://github.com/openbmc/docs

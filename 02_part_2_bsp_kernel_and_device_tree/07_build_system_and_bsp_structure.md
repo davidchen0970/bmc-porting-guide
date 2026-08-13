@@ -32,7 +32,6 @@ Yocto / OpenEmbedded 的核心觀念如下: recipe 描述套件如何取得, pat
 | linux         | kernel                | defconfig, fragments, dts           |
 | openbmc apps  | user space services   | JSON config, service override       |
 
-
 ## 7.1 Yocto 簡介
 
 Yocto Project 是一個開源協作專案, 用來幫助開發者建立針對特定硬體架構(target boards)的**自訂 Linux 作業系統**. 在 BMC porting 情境中, Yocto 的價值是把 kernel, bootloader, rootfs, package, SDK, license 資訊與平台差異, 放進一套可重現的建構流程中管理.
@@ -83,7 +82,6 @@ flowchart TB
     G1 --> G2 --> G3
 ```
 
-
 1. **階段一：準備與解析（對應圖 G1）**
     BitBake 啟動後，會讀取四大設定來決定「要編什麼」與「怎麼編」：
 
@@ -108,8 +106,6 @@ flowchart TB
     - **Package**：將安裝好的檔案拆分成多個套件（例如區分 `runtime` 與 `dev` 包）。
     - **QA Check**：執行品質檢查（如偵測 Host Contamination、遺漏的依賴、授權檢查等）。
     - **Image / SDK Generation**：最後根據 Image Recipe 組合出可燒錄的 Rootfs（如 `wic`、`ext4`），或產出供外部開發的 SDK。
-
-
 
 ## 7.1.2 Poky
 
@@ -327,7 +323,6 @@ bitbake -e <recipe> | grep '^WORKDIR='
 
 Yocto 可以理解成「可重現的嵌入式 Linux 建構框架」, BitBake 是任務引擎, OpenEmbedded 提供 metadata 骨架, Poky 是參考發行版, OpenBMC 則是在這套框架上建出的 BMC 韌體專案. 對 BMC porting 來說, 最重要的是把 machine, layer, kernel, U-Boot, image, sensor / inventory config, firmware update layout 這幾塊關係釐清, 後續 debug 才能有效率地把問題定位到 BSP, kernel, Device Tree, user space service 或平台設定.
 
-
 ## 7.2 常用變數, 目錄結構與 BitBake 建構流程
 
 這章整理 Yocto 的「廚房」: 目錄怎麼放, 設定檔怎麼寫, 常用變數代表什麼, BitBake 如何解析 metadata 並執行 tasks. 熟悉這些內容後, 排查 BMC image 建構失敗, recipe 沒有被套用, layer 優先權不如預期, sstate 沒有命中等問題會更有效率.
@@ -527,7 +522,6 @@ BMC porting 建議:
 | `EXTRA_IMAGE_FEATURES` | 額外 image feature | debug-tweaks 常見於開發版 |
 | `IMAGE_FSTYPES` | image 輸出格式 | `tar.bz2 ext4 wic ubi mtd` |
 | `BBMASK` | 讓 BitBake 忽略符合 pattern 的 `.bb` / `.bbappend` 檔案 | 排除衝突 recipe, 暫停 vendor append, 隔離不適用 layer metadata |
-
 
 ### BBMASK: 遮蔽不想讓 BitBake 解析的 recipe / append
 
@@ -881,7 +875,6 @@ bitbake-layers show-overlayed
 - BitBake User Manual: [https://docs.yoctoproject.org/bitbake/](https://docs.yoctoproject.org/bitbake/)
 - Yocto Project Development Tasks Manual - Understanding and Creating Layers: [https://docs.yoctoproject.org/dev/dev-manual/layers.html](https://docs.yoctoproject.org/dev/dev-manual/layers.html)
 - OpenEmbedded Layer Index: [https://layers.openembedded.org](https://layers.openembedded.org)
-
 
 ## 7.3 在 Docker 中建立 Yocto 專案並建置完整映像
 
@@ -1927,7 +1920,7 @@ SRC_URI:append:my-bmc-machine = " file://0001-arm-dts-add-my-platform-sensors.pa
 
 ## 7.5.11 本章參考資料
 
-- Yocto Project Development Tasks Manual - Understanding and Creating Layers: https://docs.yoctoproject.org/dev-manual/layers.html
+- Yocto Project Development Tasks Manual - Understanding and Creating Layers: https://docs.yoctoproject.org/dev/dev-manual/layers.html
 - Yocto Project Reference Manual - Append Files: https://docs.yoctoproject.org/ref-manual/terms.html#term-Append-Files
 - BitBake User Manual - Syntax and Operators: https://docs.yoctoproject.org/bitbake/bitbake-user-manual/bitbake-user-manual-metadata.html
 - Yocto Project Reference Manual - Variables: https://docs.yoctoproject.org/ref-manual/variables.html
@@ -2833,13 +2826,12 @@ find tmp/work -path '*<recipe>*packages-split*' -type f | sort
 - [ ] 若要進 image, 已透過 image append 或 packagegroup 加入, 且完整 image build 通過.
 - [ ] 若是 BMC service, 已在 target 上驗證 service status, journal, D-Bus / Redfish / IPMI 行為.
 
-## 7.7.17 本章參考資料 [待確認: 章節編號]
+## 7.7.17 本章參考資料 
 
 - Yocto Project Development Tasks Manual - Writing a New Recipe: [https://docs.yoctoproject.org/dev/dev-manual/new-recipe.html](https://docs.yoctoproject.org/dev/dev-manual/new-recipe.html)
 - Yocto Project Reference Manual - Variables Glossary: [https://docs.yoctoproject.org/ref-manual/variables.html](https://docs.yoctoproject.org/ref-manual/variables.html)
 - Yocto Project Reference Manual - Tasks: [https://docs.yoctoproject.org/ref-manual/tasks.html](https://docs.yoctoproject.org/ref-manual/tasks.html)
 - Yocto Project Reference Manual - devtool / recipetool Quick Reference: [https://docs.yoctoproject.org/ref-manual/devtool-reference.html](https://docs.yoctoproject.org/ref-manual/devtool-reference.html)
-
 
 ## 7.8 進階混合開發: devtool modify / update-recipe / finish
 

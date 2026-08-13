@@ -593,7 +593,6 @@ D-Bus / Redfish / IPMI:
 - Linux kernel `iio-hwmon.yaml`:`iio-hwmon` binding 的必要屬性為 `compatible = "iio-hwmon"` 與 `io-channels`.
 - Linux kernel `aspeed, ast2600-adc.yaml`: AST2600 ADC binding 描述兩個 ADC engine、各 8 個 voltage channels、`#io-channel-cells = <1>`、內部 reference `1200000` / `2500000` microvolt, 以及可用 `vref-supply` 對應外部 reference.
 
-
 <a id="section-12-4"></a>
 
 ## 12.4 Temperature Sensor
@@ -671,7 +670,6 @@ Redfish Thermal / Sensors、IPMI SDR、Fan PID policy 查詢或消費
 
 ### 12.4.3 常見來源分類
 
-
 | 來源類型 | 驅動 / 協定 | OpenBMC 對應 Daemon | 備註 |
 | --- | --- | --- | --- |
 | I2C 獨立晶片, 例如 TMP75 / LM75 / MAX31725 | Linux hwmon driver | HwmonTempSensor | 最常見; 需 DTS 或 board info 建立 I2C device |
@@ -681,7 +679,6 @@ Redfish Thermal / Sensors、IPMI SDR、Fan PID policy 查詢或消費
 | GPU | vendor-specific ioctl / SMBus / MCTP | GPUUtilSensor / ExternalSensor / vendor daemon | 通常需額外 userspace 工具或 vendor library |
 | 外部類比 Thermistor | ADC 讀取後換算 | ADCSensor 搭配 ScaleFactor / Offset / polynomial | 請參閱 11.1 ADC Sensor |
 | BMC SoC 內部溫度 | SoC thermal / hwmon driver | HwmonTempSensor 或 SoC-specific daemon | 需確認 kernel driver 是否輸出 temp*_input |
-
 
 ### 12.4.4 Porting 前需確認的硬體資訊與校準參數
 
@@ -846,7 +843,6 @@ temp1_max: 75000 → 75.000°C
 
 常見 sysfs 欄位:
 
-
 | 欄位 | 常見意義 | 單位 |
 | --- | --- | --- |
 | temp1_input | 目前溫度讀值 | millidegree Celsius |
@@ -854,7 +850,6 @@ temp1_max: 75000 → 75.000°C
 | temp1_crit | critical threshold, 若 driver 支援 | millidegree Celsius |
 | temp1_alarm | 硬體 alarm 狀態, 若 driver 支援 | 0 / 1 |
 | name | hwmon 裝置名稱 | 字串 |
-
 
 注意: Linux hwmon 文件中提到, driver 只是呈現硬體值與 alarm 狀態; 不同 board 的標籤與補償通常仍需由 userspace 或設定檔處理.
 
@@ -916,7 +911,6 @@ OpenBMC `dbus-sensors` 通常透過 Entity Manager 取得 sensor device 設定; 
 
 重點欄位說明:
 
-
 | 欄位 | 說明 | 檢查方式 |
 | --- | --- | --- |
 | Name | D-Bus sensor 名稱的一部分; 通常會出現在 /xyz/openbmc_project/sensors/temperature/<Name> | busctl tree / Redfish sensor list |
@@ -926,7 +920,6 @@ OpenBMC `dbus-sensors` 通常透過 Entity Manager 取得 sensor device 設定; 
 | ScaleFactor / Offset | 線性倍率與固定補償; 適合處理安裝位置或類比路徑的固定偏差 | 與標準溫度計比對 |
 | PowerState | AlwaysOn 或 On; 用來控制 host power state 下是否讀取 | 待機 / 上電狀態測試 |
 | Thresholds | Warning / Critical high / low threshold | D-Bus introspect 與 threshold 觸發測試 |
-
 
 若平台使用舊版設定格式, 可能不使用 `Exposes` wrapper, 或欄位名稱不同. 移植時請以 target image 內實際 schema 為準, 不要只複製其他平台 JSON.
 
@@ -1038,7 +1031,6 @@ $ curl -k -u root:<password> \
 
 溫度 sensor bring-up 不應只停在 `cat temp1_input` 有值, 還需與 thermal policy 對齊. 建議建立下列測試資料:
 
-
 | 測試條件 | 觀察項目 | 驗收方向 |
 | --- | --- | --- |
 | 室溫 idle | sensor 讀值、標準溫度計、風扇轉速 | ambient sensor 通常應與環境溫度接近 |
@@ -1046,7 +1038,6 @@ $ curl -k -u root:<password> \
 | fan speed step | 溫度下降時間常數 | fan policy 應可讓溫度回到目標區間 |
 | 局部加熱 | D-Bus Value、WarningAlarmHigh、CriticalAlarmHigh | threshold 旗標與事件紀錄需同步更新 |
 | S5 / standby | PowerState 行為與 I2C error log | 不應在未供電裝置上持續讀取造成錯誤 |
-
 
 校準建議:
 
@@ -1056,7 +1047,6 @@ $ curl -k -u root:<password> \
 - threshold 建議由熱設計與可靠度規格定義, 不要只依 bring-up 當下測得溫度推估.
 
 ### 12.4.13 進階除錯與常見陷阱
-
 
 | 問題現象 | 建議排查方向 | 排查 / 處理方式 |
 | --- | --- | --- |
@@ -1070,9 +1060,7 @@ $ curl -k -u root:<password> \
 | PECI CPU 溫度無法讀取 | peci driver 未載入; PECI channel 初始化失敗; host CPU 不回應 | 檢查 DTS peci node、dmesg、host power state 與平台 PECI routing |
 | threshold 不觸發事件 | Thresholds 未進 D-Bus; logging / event policy 未連接; 測試溫度未跨越門檻與 hysteresis 條件 | busctl introspect 查看 Warning/Critical 介面; busctl monitor; 查 phosphor-logging journal |
 
-
 ### 12.4.14 Temperature Sensor 資料表範本
-
 
 | 欄位 | 填寫值 | 備註 |
 | --- | --- | --- |
@@ -1094,7 +1082,6 @@ $ curl -k -u root:<password> \
 | PowerState | [待填] | AlwaysOn / On |
 | Fan Policy Consumer | [待填] | PID zone 或 thermal policy 名稱 |
 | Validation Owner | [待填] | BMC / Thermal / HW / System |
-
 
 ### 12.4.15 Temperature Sensor 完整 Checklist(Porting 驗收)
 
@@ -5513,8 +5500,6 @@ flowchart TD
 - 冷開機、host power cycle、BMC reboot、service restart、異常注入與恢復測試結果。
 
 > 表格中的 `[待填]` 應保留給平台實測值，不宜用通用假設代填；合併前應由 HW、BMC、Thermal/Power 與 Validation owner 共同關閉。
-
-
 
 建議依序檢查: hardware → kernel/sysfs → config → service → D-Bus → Redfish/IPMI → event/policy.
 

@@ -1252,7 +1252,6 @@ tar czf "/tmp/i2c-pmbus-debug-$(date +%Y%m%d-%H%M%S).tar.gz" \
 13. 測試 absent、power-off、timeout、bus stuck、mux reset、service restart 與 BMC reboot.
 14. 保存 waveform、status snapshot、kernel / service log 與版本資訊.
 
-
 <a id="section-10-30"></a>
 
 ## 10.20 平台拓樸與實測紀錄表

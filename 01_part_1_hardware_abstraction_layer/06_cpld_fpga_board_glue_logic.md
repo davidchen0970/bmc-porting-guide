@@ -1028,7 +1028,6 @@ tar czf "/tmp/cpld-fpga-debug-$(date +%Y%m%d-%H%M%S).tar.gz" \
 14. 最後執行 firmware update、interruption 與 recovery 測試.
 15. 進行 BMC reboot、host power cycle、AC cycle 與 watchdog regression.
 
-
 ## 6.19 平台實測紀錄表
 
 | 項目 | 來源 / 指令 | 實測值 | 備註 |

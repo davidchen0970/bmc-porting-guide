@@ -116,7 +116,6 @@ sequenceDiagram
     end
 ```
 
-
 | 動作 / 狀態 | BMC | CPLD | BIOS / Host | 驗證方式 |
 | :--- | :--- | :--- | :--- | :--- |
 | PWRBTN pulse | 產生 pulse 或請 CPLD 產生 | mux / gate / debounce | 接收 ACPI event | LA 量測 PWRBTN 與 SLP_Sx |
@@ -289,7 +288,6 @@ flowchart LR
 - Graceful shutdown timeout 與 fallback force off policy
 - Host running 判斷依據: PGOOD、POST_COMPLETE、PLTRST、host heartbeat、OS response
 - BMC reboot while host on 的預期行為
-
 
 ### Step 2: Device Tree / GPIO Line Name
 
