@@ -1,6 +1,6 @@
 # 4. Reset、Clock 與 Power Domain
 
-本章整理 BMC 平台中 reset、clock、power rail、regulator、power domain 與 ready signal 的共用設計模式與排查方法. 這一章和第 1 章 Boot Flow、第 3 章 Pinmux / GPIO、第 5 章周邊匯流排、第 16 章 Power Control 關係很密切; 差異在於本章聚焦「硬體 domain 是否已具備讓 device probe、bus transaction、host power transition 正常進行的前置條件」.
+本章整理 BMC 平台中 reset、clock、power rail、regulator、power domain 與 ready signal 的共用設計模式與排查方法. 這一章和第 1 章 Boot Flow、第 3 章 Pinmux / GPIO、第 5 章周邊匯流排、第 28 章 Power Control 關係很密切; 差異在於本章聚焦「硬體 domain 是否已具備讓 device probe、bus transaction、host power transition 正常進行的前置條件」.
 
 Reset / Clock / Power Domain 問題常呈現為: driver probe deferred、I2C / SPI / eMMC / MAC 無回應、PHY link 不起、host power sequence timeout、BMC reboot 影響 host、watchdog reset 後狀態不一致、周邊偶發消失. 排查時應同時檢查相關訊號, 需要同時把 rail、clock、reset、pinmux、driver binding、service policy、CPLD state、reset reason 串起來看.
 

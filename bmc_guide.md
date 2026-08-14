@@ -74,14 +74,14 @@
 | 2026-07-09 |  0.30 | Copilot | 撰寫第 4 章 Reset / Clock / Power Domain、DTS 範本、domain timing、reset reason、log 收集與驗收 checklist |
 | 2026-07-10 |  0.31 | Copilot | 重寫第 2 章 Flash Partition 與儲存架構，補齊 MTD / UBI / MBR / GPT、檔案系統、映像格式、更新 rollback 與 log 收集 |
 | 2026-07-10 |  0.32 | Copilot | 撰寫第 5 章周邊匯流排通用知識，補強 bus map、DTS/kernel/OpenBMC 對齊、I2C/SPI/UART/PECI/eSPI/NC-SI/MCTP/PLDM/SPDM、log 收集、回查結果與驗收 checklist |
-| 2026-07-10 |  0.33 | Copilot | 撰寫第 6 章 CPLD / FPGA / Board Glue Logic，補強 register map、power sequence、reset mux、fault latch、WP / flash mux、update / recovery、OpenBMC 整合、log 收集、回查結果與驗收 checklist |
-| 2026-07-10 |  0.34 | Copilot | 撰寫第 8 章 Device Tree 通用寫法與排查 |
-| 2026-07-10 |  0.35 | Copilot | 撰寫第 10 章 I2C / PMBus 裝置驅動架構 |
-| 2026-07-10 |  0.36 | Copilot | 撰寫第 15 章 Inventory / FRU / Asset 資料模型 |
-| 2026-07-10 |  0.37 | Copilot | 撰寫第 16 章 Logging / Event / Telemetry |
-| 2026-07-10 |  0.38 | Copilot | 撰寫第 20 章 MCTP / PLDM / SPDM |
-| 2026-07-10 |  0.39 | Copilot | 撰寫第 9 章 Kernel Driver 與核心服務 |
-| 2026-07-10 |  0.40 | Copilot | 重寫第 10 章為 I2C / PMBus Framework |
+| 2026-07-10 |  0.33 | Copilot | 撰寫第 18 章 CPLD / FPGA / Board Glue Logic，補強 register map、power sequence、reset mux、fault latch、WP / flash mux、update / recovery、OpenBMC 整合、log 收集、回查結果與驗收 checklist |
+| 2026-07-10 |  0.34 | Copilot | 撰寫第 20 章 Device Tree 通用寫法與排查 |
+| 2026-07-10 |  0.35 | Copilot | 撰寫第 22 章 I2C / PMBus 裝置驅動架構 |
+| 2026-07-10 |  0.36 | Copilot | 撰寫第 27 章 Inventory / FRU / Asset 資料模型 |
+| 2026-07-10 |  0.37 | Copilot | 撰寫第 28 章 Logging / Event / Telemetry |
+| 2026-07-10 |  0.38 | Copilot | 撰寫第 32 章 MCTP / PLDM / SPDM |
+| 2026-07-10 |  0.39 | Copilot | 撰寫第 21 章 Kernel Driver 與核心服務 |
+| 2026-07-10 |  0.40 | Copilot | 重寫第 22 章為 I2C / PMBus Framework |
 | 2026-07-10 |  0.41 | Copilot | 拆分章節 |
 
 ### 0.7 資料來源可信度分級
