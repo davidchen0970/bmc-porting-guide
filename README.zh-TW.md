@@ -1,6 +1,6 @@
 # BMC 移植技術參考文件
 
-語言: [English](README.md) | README.zh-TW.md
+語言：[English](README.md) | **繁體中文**
 
 ## 章節索引
 
@@ -8,9 +8,21 @@
 
 - [開機流程與 SoC 初始化](01_part_1_hardware_abstraction_layer/01_boot_flow_and_soc_initialization.md)
 - [Flash 分割區與儲存架構](01_part_1_hardware_abstraction_layer/02_flash_partition_and_storage_architecture.md)
-- [Pinmux、GPIO 常見設計模式](01_part_1_hardware_abstraction_layer/03_pinmux_gpio_common_design_patterns.md)
+- [Pinmux 與 GPIO 常見設計模式](01_part_1_hardware_abstraction_layer/03_pinmux_gpio_common_design_patterns.md)
 - [Reset、Clock 與 Power Domain](01_part_1_hardware_abstraction_layer/04_reset_clock_and_power_domain.md)
 - [周邊匯流排基礎](01_part_1_hardware_abstraction_layer/05_peripheral_bus_fundamentals.md)
+- [I2C、SMBus 與 PMBus](01_part_1_hardware_abstraction_layer/06_i2c_smbus_and_pmbus.md)
+- [SPI](01_part_1_hardware_abstraction_layer/07_spi.md)
+- [UART 與序列主控台](01_part_1_hardware_abstraction_layer/08_uart_and_serial_console.md)
+- [ADC 與 IIO](01_part_1_hardware_abstraction_layer/09_adc_and_iio.md)
+- [PWM 與 Tach](01_part_1_hardware_abstraction_layer/10_pwm_and_tach.md)
+- [PECI 與 APML](01_part_1_hardware_abstraction_layer/11_peci_and_apml.md)
+- [eSPI、LPC 與 Host Interface](01_part_1_hardware_abstraction_layer/12_espi_lpc_and_host_interface.md)
+- [Ethernet MAC、PHY 與 MDIO](01_part_1_hardware_abstraction_layer/13_ethernet_mac_phy_and_mdio.md)
+- [NC-SI](01_part_1_hardware_abstraction_layer/14_nc_si.md)
+- [PCIe Management Sideband](01_part_1_hardware_abstraction_layer/15_pcie_management_sideband.md)
+- [USB Gadget](01_part_1_hardware_abstraction_layer/16_usb_gadget.md)
+- [MCTP、PLDM 與 SPDM](01_part_1_hardware_abstraction_layer/17_mctp_pldm_and_spdm.md)
 - [CPLD/FPGA 板級 Glue Logic](01_part_1_hardware_abstraction_layer/18_cpld_fpga_board_glue_logic.md)
 
 ### Part 2：BSP、Kernel 與 Device Tree
@@ -34,41 +46,42 @@
 
 - [KCS、BT、SSIF 與 eSPI](04_part_4_host_communication/30_kcs_bt_ssif_espi.md)
 - [BIOS/UEFI 與 BMC 互動](04_part_4_host_communication/31_bios_uefi_and_bmc_interaction.md)
+- [LTPI 與 DC-SCM/DC-SCI 架構](04_part_4_host_communication/32_ltpi_and_dc_scm_dc_sci_architecture.md)
 
 ### Part 5：管理介面與網路
 
 - [MCTP、PLDM 與 SPDM](05_part_5_management_interfaces_and_networking/33_mctp_pldm_spdm.md)
 - [IPMI 基礎](05_part_5_management_interfaces_and_networking/34_ipmi_fundamentals.md)
 - [Redfish 基礎](05_part_5_management_interfaces_and_networking/35_redfish_fundamentals.md)
-- [Network Services](05_part_5_management_interfaces_and_networking/36_network_services.md)
+- [網路服務](05_part_5_management_interfaces_and_networking/36_network_services.md)
 
 ### Part 6：安全性與韌體維護
 
-- [Security Baseline](18_part_6_security_and_firmware_maintenance/37_security_baseline.md)
-- [Firmware Update](18_part_6_security_and_firmware_maintenance/38_firmware_update.md)
-- [Secure Recovery、RMA 與 Field Service](18_part_6_security_and_firmware_maintenance/39_secure_recovery_rma_and_field_service.md)
+- [安全性基準](06_part_6_security_and_firmware_maintenance/37_security_baseline.md)
+- [韌體更新](06_part_6_security_and_firmware_maintenance/38_firmware_update.md)
+- [安全復原、RMA 與現場服務](06_part_6_security_and_firmware_maintenance/39_secure_recovery_rma_and_field_service.md)
 
-### Part 7：Debug、效能與測試
+### Part 7：除錯、效能與測試
 
-- [Debug Methodology](19_part_7_debugging_performance_and_testing/40_debug_methodology.md)
-- [Debug Toolkit](19_part_7_debugging_performance_and_testing/41_debug_toolkit.md)
-- [常見 Sensor Debug Commands 與附錄](19_part_7_debugging_performance_and_testing/42_common_sensor_debug_commands_and_appendix.md)
-- [效能、資源與開機時間](19_part_7_debugging_performance_and_testing/43_performance_resource_and_boot_time.md)
-- [General Test Matrix](19_part_7_debugging_performance_and_testing/44_general_test_matrix.md)
+- [除錯方法論](07_part_7_debugging_performance_and_testing/40_debug_methodology.md)
+- [除錯工具集](07_part_7_debugging_performance_and_testing/41_debug_toolkit.md)
+- [常見 Sensor 除錯指令與附錄](07_part_7_debugging_performance_and_testing/42_common_sensor_debug_commands_and_appendix.md)
+- [效能、資源與開機時間](07_part_7_debugging_performance_and_testing/43_performance_resource_and_boot_time.md)
+- [通用測試矩陣](07_part_7_debugging_performance_and_testing/44_general_test_matrix.md)
 
 ### Part 8：製造與量產
 
-- [Manufacturing 與 Factory](20_part_8_manufacturing_and_production/45_manufacturing_and_factory.md)
-- [Calibration、Board Data 與 Provisioning](20_part_8_manufacturing_and_production/46_calibration_board_data_and_provisioning.md)
+- [製造與工廠](08_part_8_manufacturing_and_production/45_manufacturing_and_factory.md)
+- [校正、板級資料與佈建](08_part_8_manufacturing_and_production/46_calibration_board_data_and_provisioning.md)
 
 ### Part 9：平台特定筆記
 
-- [SoC Notes Template](21_part_9_platform_specific_notes/47_soc_notes_template.md)
+- [SoC 筆記範本](09_part_9_platform_specific_notes/47_soc_notes_template.md)
 
 ### Part 10：附錄
 
-- [常用縮寫與術語](22_part_22_appendices/A01_common_abbreviations_and_terms.md)
-- [常用指令參考](22_part_22_appendices/A02_common_commands_reference.md)
-- [Log 收集 Package Template](22_part_22_appendices/A03_log_collection_package_template.md)
-- [Bring-up 與 Acceptance Checklist](22_part_22_appendices/A04_bring_up_and_acceptance_checklist.md)
-- [Documentation Template](22_part_22_appendices/A05_documentation_template.md)
+- [常用縮寫與術語](10_part_10_appendices/A01_common_abbreviations_and_terms.md)
+- [常用指令參考](10_part_10_appendices/A02_common_commands_reference.md)
+- [Log 收集套件範本](10_part_10_appendices/A03_log_collection_package_template.md)
+- [Bring-up 與驗收檢查表](10_part_10_appendices/A04_bring_up_and_acceptance_checklist.md)
+- [文件範本](10_part_10_appendices/A05_documentation_template.md)
