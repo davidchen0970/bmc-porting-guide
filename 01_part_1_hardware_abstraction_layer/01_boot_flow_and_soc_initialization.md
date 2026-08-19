@@ -11,6 +11,39 @@
 - Security 及 validation 工程師
 - 系統整合與故障分析人員
 
+## 章節導讀：先看懂 BMC 如何一步一步開機
+
+BMC 開機不是單一程式一次完成，而是一條由硬體逐步交棒給軟體的一系列步驟。上電後，
+1. 電源與 reset 必須先穩定
+2. SoC 接著讀取 strap 決定 boot source
+3. BootROM 從 boot media 載入第一段程式
+4. SPL / U-Boot 完成 DDR 與必要周邊初始化
+5. 最後由 Linux kernel 掛載 rootfs，交由 systemd 與 OpenBMC services 建立管理功能。
+
+閱讀本章時，建議先掌握以下四個問題：
+
+1. **系統停在哪一個階段？** 先分辨是 power/reset、BootROM、SPL/U-Boot、kernel，還是 userspace。
+2. **上一階段是否真的完成交棒？** 例如 BootROM 是否成功讀到 SPL，U-Boot 是否載入正確的 kernel 與 DTB。
+3. **有哪些可觀察證據？** 依階段選擇 UART、示波器、logic analyzer、U-Boot command、`dmesg` 或 `journalctl`。
+4. **目前看到的是根因還是後續症狀？** 例如 userspace service failed，可能只是更早的 driver probe 或 Device Tree 設定錯誤。
+
+想深入理解 bootloader 與 kernel 的分工，可閱讀 [第 21 章：U-Boot, Kernel Driver 與核心服務](../02_part_2_bsp_kernel_and_device_tree/21_u_boot_kernel_drivers_and_core_services.md)。Device Tree 與 DTB 的完整說明請參考 [第 20 章](../02_part_2_bsp_kernel_and_device_tree/20_device_tree_common_patterns_and_troubleshooting.md)，D-Bus 與 OpenBMC service 資料流請參考 [第 23 章](../03_part_3_platform_monitoring_and_control/23_openbmc_common_projects_and_services_reference.md)。
+
+## 核心名詞小字典
+
+| 名詞 | 新手版說明 | 延伸閱讀 |
+| --- | --- | --- |
+| Strap | SoC 在 reset 釋放附近取樣的硬體腳位狀態，用來決定 boot source、安全模式或除錯模式等早期行為。 | [1.2](#12-boot-strap--reset-strap-原理) |
+| BootROM | 固化在 SoC 內、上電後最先執行的程式，負責依 strap 找到 boot media 並載入下一階段。 | [第 21 章](../02_part_2_bsp_kernel_and_device_tree/21_u_boot_kernel_drivers_and_core_services.md) |
+| SPL / TPL | 放在 U-Boot proper 之前的小型載入器，通常用於 SRAM 空間有限時，先完成 DDR 或必要硬體初始化。 | [第 21 章](../02_part_2_bsp_kernel_and_device_tree/21_u_boot_kernel_drivers_and_core_services.md) |
+| U-Boot | 常見的 bootloader，負責選擇映像、組合 boot arguments，並把 kernel 與 DTB 交給 Linux。 | [第 21 章](../02_part_2_bsp_kernel_and_device_tree/21_u_boot_kernel_drivers_and_core_services.md) |
+| DTB | Device Tree Source 編譯後的 binary，描述板級硬體，供 bootloader 與 kernel 使用。 | [第 20 章](../02_part_2_bsp_kernel_and_device_tree/20_device_tree_common_patterns_and_troubleshooting.md) |
+| Rootfs | Linux 啟動後掛載的根檔案系統，包含系統程式、設定與 services。 | [第 2 章](02_flash_partition_and_storage_architecture.md) |
+| D-Bus | OpenBMC userspace services 之間交換物件、屬性與事件的訊息匯流排。 | [第 23 章](../03_part_3_platform_monitoring_and_control/23_openbmc_common_projects_and_services_reference.md) |
+| Watchdog | 在系統卡住或未如期回報時觸發 reset 的監控機制，可能存在於 SoC、U-Boot、Linux、CPLD 或外部 IC。 | [1.5](#15-watchdog-在開機各階段的角色) |
+
+完整縮寫表請參考 [附錄 A01：常用縮寫與名詞對照](../10_part_10_appendices/A01_common_abbreviations_and_terms.md)。
+
 ## 快速導覽
 
 | 常見故障現象 | 對應章節 |
@@ -22,13 +55,13 @@
 | 開機期間重複 reset | [1.5](#15-watchdog-在開機各階段的角色) |
 | 不同 SoC 的 BootROM 或 boot media 差異 | [1.6](#16-各-soc-開機流程差異速查) |
 | `kernel panic`, rootfs 或 service 問題 | [1.7](#17-boot-failure-分類與排查入口) |
-| 專案設定, 量測值及驗收結果 | [1.8](#18-當前平台-boot-strap-設定與實際量測值) |
+| 專案設定、量測值及驗收結果 | [1.8](#18-新平台-bring-up-紀錄原則)、[現場實測紀錄單](#附錄新平台-bring-up-現場實測紀錄單) |
 
 本章整理 BMC 從上電到管理服務可用之間的主要流程, 並建立 bring-up 與故障排查時的 共同語言.
 
 新平台的 Boot Flow 由 power rail, reset, strap, clock, boot media, DDR, bootloader, kernel, rootfs 與 userspace services 串接而成. 任一階段狀態不一致, 都可能表現為無 UART, 卡在 U-Boot, `kernel panic`, service 無法啟動, 或 Redfish, IPMI 無回應.
 
-本章涵蓋 1.1 至 1.8: BMC SoC 常見開機流程, Boot Strap / Reset Strap, SPI-NOR / SPI-NAND / eMMC 差異, DDR 初始化, Watchdog, SoC 差異, Boot Failure 分類及當前平台量測表.
+本章涵蓋 1.1 至 1.9：BMC SoC 常見開機流程、Boot Strap / Reset Strap、SPI-NOR / SPI-NAND / eMMC 差異、DDR 初始化、Watchdog、SoC 差異、Boot Failure 分類、Bring-up 紀錄原則及相關章節交叉引用。
 
 ## 1.1 BMC SoC 常見開機流程
 
@@ -126,19 +159,9 @@ Boot strap / reset strap 是 SoC 在 reset 釋放附近擷取的硬體腳位狀�
 
 排查 strap 問題時, 除了確認 schematic 設計值, 也應量測 reset 釋放瞬間的 實際電位. 部分平台的 strap 可能受 CPLD, buffer, multi-function pin 或 update tool 影響. 量測點應靠近 SoC pin, 或選擇可代表 SoC input 的節點.
 
-### Strap 紀錄表
+### 專案紀錄方式
 
-| Strap Signal | SoC Pin | Design Value | Measured Value |
-| --- | --- | --- | --- |
-| Boot source strap | [待填] | [待填] | [待填] |
-| Secure boot strap | [待填] | [待填] | [待填] |
-| Debug strap | [待填] | [待填] | [待填] |
-
-| Strap Signal | Latch 時間點 | Pull Resistor | 責任窗口 | 備註 |
-| --- | --- | --- | --- | --- |
-| Boot source strap | Reset deassert 附近 | [待填] | HW, BMC | [待填] |
-| Secure boot strap | Reset deassert 附近 | [待填] | HW, Security | [待填] |
-| Debug strap | Reset deassert 附近 | [待填] | HW, BMC | [待填] |
+Strap 的設計值、實測值、latch 時間點、pull resistor 與責任窗口應留在同一份專案紀錄中，避免正文隨不同平台反覆修改。請使用文末的 [附錄：新平台 Bring-up 現場實測紀錄單](#附錄新平台-bring-up-現場實測紀錄單)。
 
 ## 1.3 SPI-NOR / SPI-NAND / eMMC 初始化流程差異
 
@@ -312,7 +335,49 @@ U-Boot 第一輪檢查可使用下列指令:
 => sf read ${loadaddr} ${offset} ${size}
 ```
 
-## 1.8 當前平台 Boot Strap 設定與實際量測值
+## 1.8 新平台 Bring-up 紀錄原則
+
+新平台 bring-up 不只要保存最後的 pass / fail，也要讓其他工程師能重現當時的條件。建議每次測試至少記錄 board revision、firmware version、測試條件、量測工具、完整 UART log、reset reason、strap 實測值及相關 issue 連結。
+
+紀錄欄位應使用固定狀態，例如 `Not started`、`In progress`、`Verified`、`Blocked` 或 `N/A`。每次硬體 rework、CPLD 更新、bootloader 更新或安全設定變更後，都應建立新紀錄或保留 revision history，不要直接覆蓋舊結果。
+
+所有現場填寫表格與驗收項目已集中至文末的 [附錄：新平台 Bring-up 現場實測紀錄單](#附錄新平台-bring-up-現場實測紀錄單)。
+
+## 1.9 本章參考資料與交叉引用
+
+- Flash layout、partition、SPI-NOR、SPI-NAND、UBI 與 eMMC storage architecture，請參考 [第 2 章](02_flash_partition_and_storage_architecture.md)。
+- Pinmux 與 GPIO 設計及排查方式，請參考 [第 3 章](03_pinmux_gpio_common_design_patterns.md)。
+- Reset、clock 與 power domain，請參考 [第 4 章](04_reset_clock_and_power_domain.md)。
+- I2C / SMBus / PMBus，請參考 [第 6 章](06_i2c_smbus_and_pmbus.md)。
+- SPI controller 與 SPI device bring-up，請參考 [第 7 章](07_spi.md)。
+- UART console 設定與除錯，請參考 [第 8 章](08_uart_and_serial_console.md)。
+- Yocto build system 與 BSP structure，請參考 [第 19 章](../02_part_2_bsp_kernel_and_device_tree/19_build_system_and_bsp_structure.md)。
+- Device Tree common patterns 與 troubleshooting，請參考 [第 20 章](../02_part_2_bsp_kernel_and_device_tree/20_device_tree_common_patterns_and_troubleshooting.md)。
+- U-Boot、Linux kernel、driver 與 core services，請參考 [第 21 章](../02_part_2_bsp_kernel_and_device_tree/21_u_boot_kernel_drivers_and_core_services.md)。
+- 通用故障分析方法與除錯工具，請參考 [第 40 章](../07_part_7_debugging_performance_and_testing/40_debug_methodology.md)與[第 41 章](../07_part_7_debugging_performance_and_testing/41_debug_toolkit.md)。
+- Boot time、效能與非同步 probe，請參考 [第 43 章](../07_part_7_debugging_performance_and_testing/43_performance_resource_and_boot_time.md)。
+- 標準化 log collection package，請參考 [附錄 A03](../10_part_10_appendices/A03_log_collection_package_template.md)。
+- Bring-up 與 acceptance checklist，請參考 [附錄 A04](../10_part_10_appendices/A04_bring_up_and_acceptance_checklist.md)。
+
+## 附錄：新平台 Bring-up 現場實測紀錄單
+
+> 本附錄屬於專案 worksheet。建議每個 board revision 或 firmware baseline 複製一份填寫，正文則維持為共用的教學與排查內容。
+
+### A. Strap 設計與量測紀錄
+
+| Strap Signal | SoC Pin | Design Value | Measured Value |
+| --- | --- | --- | --- |
+| Boot source strap | [待填] | [待填] | [待填] |
+| Secure boot strap | [待填] | [待填] | [待填] |
+| Debug strap | [待填] | [待填] | [待填] |
+
+| Strap Signal | Latch 時間點 | Pull Resistor | 責任窗口 | 備註 |
+| --- | --- | --- | --- | --- |
+| Boot source strap | Reset deassert 附近 | [待填] | HW, BMC | [待填] |
+| Secure boot strap | Reset deassert 附近 | [待填] | HW, Security | [待填] |
+| Debug strap | Reset deassert 附近 | [待填] | HW, BMC | [待填] |
+
+### B. 平台測試資訊、設定值與驗收結果
 
 本節作為專案填寫區. Bring-up 前至少需完成 boot source, secure boot, UART, flash, DDR 及 reset timing 的資料整理. 每次硬體 rework, CPLD 更新, bootloader 更新或安全設定變更後, 建議同步更新.
 
@@ -363,55 +428,3 @@ U-Boot 第一輪檢查可使用下列指令:
 - [ ] AC cycle 行為已建立 baseline.
 - [ ] BMC reset 行為已建立 baseline.
 - [ ] Watchdog reset 行為已建立 baseline.
-
-## 1.9 本章參考資料與交叉引用
-
-- Flash layout 與 partition 細節請參考第 2 章.
-- Pinmux, GPIO, reset, clock 及 power rail 細節請參考第 3, 4 章.
-- Boot media 涉及 SPI, eMMC, I2C / SMBus 介面時, 請參考第 5 章.
-- Yocto / U-Boot / kernel / DTS 建構與修改流程請參考第 7, 8, 9 章.
-- 故障分析與 log 收集方法請參考第 25, 26 章.
-
-### 雜記
-
-#### NVMe 非同步 Probe 與裝置編號
-
-Linux kernel 在 PCI bus 與 NVMe driver 配對後，會呼叫 driver 的 `probe()` 進行裝置初始化。NVMe PCI driver 將 `probe_type` 設為 `PROBE_PREFER_ASYNCHRONOUS`，因此 kernel 可將 NVMe 的 probe 工作排入非同步工作佇列，讓多顆儲存裝置平行初始化，避免開機流程逐顆等待而增加啟動時間。
-
-```c
-static struct pci_driver nvme_driver = {
-    .name       = "nvme",
-    .id_table   = nvme_id_table,
-    .probe      = nvme_probe,
-    .remove     = nvme_remove,
-    .shutdown   = nvme_shutdown,
-    .driver     = {
-        .probe_type = PROBE_PREFER_ASYNCHRONOUS,
-#ifdef CONFIG_PM_SLEEP
-        .pm = &nvme_dev_pm_ops,
-#endif
-    },
-    .sriov_configure = pci_sriov_configure_simple,
-    .err_handler = &nvme_err_handler,
-};
-```
-
-由於多顆 NVMe SSD 可能在不同執行緒中平行初始化，完成順序不保證固定。Linux 配置的裝置編號可能因此隨開機狀況改變，例如同一顆實體 SSD 在不同次開機中可能分別顯示為 `/dev/nvme0n1` 或 `/dev/nvme1n1`。此現象通常屬於非同步 probe 的正常行為，不代表 SSD 資料、分割區內容或 PCIe 連線發生異常。
-
-系統設定不應依賴 `/dev/nvmeXnY`、`/dev/sdX` 等動態名稱來識別固定磁碟。建議依用途選用下列方式：
-
-- 檔案系統掛載：使用 filesystem UUID。
-- Root filesystem：使用 UUID 或 PARTUUID。
-- 固定對應實體 PCIe 插槽：使用 udev rule，依 PCIe BDF（Bus:Device.Function）建立固定 symbolic link。
-- 故障排查：搭配 `lspci -nnk`、`udevadm info`、`lsblk -o NAME,PATH,SERIAL,WWN,UUID,PARTUUID` 與 `dmesg` 核對實體裝置及其動態名稱。
-
-檢查指令：
-
-```bash
-lspci -nnk
-lsblk -o NAME,PATH,SERIAL,WWN,UUID,PARTUUID
-blkid
-udevadm info --query=property --name=/dev/nvme0n1
-```
-
-判斷時應區分「裝置編號改變」與「裝置未被偵測」。若僅有 `nvme0`、`nvme1` 順序交換，但所有預期 SSD 均可辨識，且序號、WWN、UUID 與容量正確，通常可視為正常行為；若 SSD 缺失、probe 失敗、PCIe link 異常或出現 I/O error，則仍需進一步排查。
