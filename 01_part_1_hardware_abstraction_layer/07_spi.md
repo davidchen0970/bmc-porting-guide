@@ -11,7 +11,21 @@ SPI (Serial Peripheral Interface) 是 controller (master) 與 peripheral (slave)
 * **MISO** (Master In Slave Out)：Peripheral 輸出、Controller 輸入之資料線。
 * **CS / SS** (Chip Select / Slave Select)：裝置選擇訊號（通常為 Active Low）。
 
-SPI 本身僅定義最基本的分時移位與取樣機制，並沒有統一的 Discovery、Addressing、Register Map 或 Error Response 格式。因此每個 Flash、TPM、ADC、CPLD 或 FPGA 的 Command Protocol 都必須依裝置規格書實作。
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/SPI_three_slaves.svg/1280px-SPI_three_slaves.svg.png?utm_source=zh.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail)
+
+
+### SPI 的設計哲學是 「用極簡的硬體換取最高的傳輸速度」
+
+核心優勢
+* 高吞吐量：全雙工（同時收發），SCLK 頻率可高達數十至上百 MHz。
+* 硬體極簡：Slave 端不需要複雜的波特率產生器或 Protocol State Machine。
+
+設計代價
+
+* 沒有 Discovery 機制：Master 無法自動搜尋線上接了哪些 Slave。
+* 沒有 Addressing 格式：線路上沒有裝置位址（全靠獨立 CS 腳位點名）。
+* 沒有標準 Register Map：沒有統一的讀寫暫存器規範（全依各晶片 Data Sheet 實作）。
+* 沒有硬體 ACK / Error Response：Master 送出資料後，無法即時從線路上得知 Slave 是否正常接收。
 
 ### 參與者與角色
 
@@ -19,10 +33,6 @@ SPI 本身僅定義最基本的分時移位與取樣機制，並沒有統一的 
 * **Peripheral (Slave)**：在指定的 SPI Mode 與 Chip Select 被 Assert 下進行資料移入與移出。
 * **SPI Core / Controller Driver**：Linux 核心中負責建立 `spi_message`、`spi_transfer`，管理 DMA 與 Chip-Select GPIO。
 * **Protocol Driver**：理解特定硬體 (如 JEDEC Flash、TPM 2.0、IIO Sensor) 的 Opcode、Status Register 與控制邏輯。
-
-沒問題！原本的草稿在 7.2 確實只寫了高階步驟，沒把最精髓的**硬體暫存器推拉機制**、**微觀時序（Clock Pulse 的精細動作）**以及**核心 Driver 怎麼把資料推到線路上**拆解清楚。
-
-下面我們把「7.2 怎麼運作」從**硬體電路、時序微觀、Multi-IO 到 Kernel 軟體層**徹底補完！
 
 
 ## 7.2 SPI 怎麼運作
@@ -54,6 +64,8 @@ SPI 在硬體層面最核心的概念不是「傳送/接收」，而是「兩個
 ### 2. 微觀時序：CPOL 與 CPHA 的邊緣觸發機制
 
 SCLK 時脈邊緣分為 **Sample (取樣/閂鎖)** 與 **Shift (移位/切換電位)** 兩種動作。CPOL 與 CPHA 決定這兩種動作在時脈的第幾個邊緣發生。
+
+![](https://i-blog.csdnimg.cn/blog_migrate/a181f64fa104dfb7a4b8ebb2db724e34.png)
 
 #### CPOL (Clock Polarity, 時脈極性)
 
