@@ -1,4 +1,4 @@
-# 23. Network Services
+# 36. Network Services
 
 
 
@@ -6,7 +6,7 @@ BMC 網路是遠端伺服器硬體管理的主要入口。網路可用性不只�
 
 本章從底層實體網路介面出發，系統化說明 DHCP、Static IP、IPv6 策略、VLAN、Bonding、NIC failover、Hostname、DNS、NTP / PTP、nftables 防火牆、[Redfish](35_redfish_fundamentals.md) 與 [IPMI](34_ipmi_fundamentals.md) network service 的軟硬體整合架構，並建立可重複量測的「開機至 API 可用」時間線與完整驗收流程。
 
-## 23.1 BMC 網路資料路徑
+## 36.1 BMC 網路資料路徑
 
 
 
@@ -55,7 +55,7 @@ flowchart TB
 
 > `ping` 成功僅代表 ICMP (Layer 3) 點對點路徑可用，無法證明 Redfish (HTTPS)、IPMI over LAN (UDP 623)、DNS 解析、NTP 時間同步或 Event Sender 能正常運作。
 
-## 23.2 Dedicated NIC 與 Shared NIC
+## 36.2 Dedicated NIC 與 Shared NIC
 
 在 OpenBMC 架構中，實體管理網路通常分為兩種：
 
@@ -75,7 +75,7 @@ flowchart TB
 
 > **物理連接埠、Kernel 網路介面與 OpenBMC 管理服務之間，具有固定且可追蹤的對應關係。**
 
-### 23.2.1 Dedicated Management NIC
+### 36.2.1 Dedicated Management NIC
 
 Dedicated NIC 是 BMC 專屬的實體管理介面。
 
@@ -239,7 +239,7 @@ Duplex Mismatch 常造成：
 - Access VLAN 或 Trunk VLAN
 - Untagged 與 Tagged Traffic 規則
 
-### 23.2.2 Shared NIC / NC-SI
+### 36.2.2 Shared NIC / NC-SI
 
 Shared NIC 允許 BMC 與 Host 共用同一個實體網路埠。
 
@@ -401,7 +401,7 @@ Recovery 流程應包含：
 5. 重新設定 MAC、VLAN 與封包過濾器。
 6. 驗證 Link 與網路可達性。
 
-### 23.2.3 Interface Identity 與命名固定化
+### 36.2.3 Interface Identity 與命名固定化
 
 #### 1. 介面列舉競態
 
@@ -592,7 +592,7 @@ Name=ncsi0
 
 > 表中的位址、Path 與介面名稱屬於平台範例，需依實際 SoC、Devicetree 與 sysfs 結果調整。
 
-### 23.2.4 建議驗證流程
+### 36.2.4 建議驗證流程
 
 #### Dedicated NIC
 
@@ -649,7 +649,7 @@ Name=ncsi0
 - 管理服務仍綁定預期介面
 
 
-## 23.3 Linux Network Stack
+## 36.3 Linux Network Stack
 
 Linux Netdev 提供 Layer 2 網路介面，所有的 IP Address、Subnet Mask、Default Route 與 Firewall 規則皆建立於 Netdev 之上。
 
@@ -663,7 +663,7 @@ ip -6 route show table all
 ss -lntup
 ```
 
-### 23.3.1 Link State
+### 36.3.1 Link State
 
 Linux Netdev 包含四個關鍵狀態維度：
 1. **Administrative State**：管理者是否發送 `ip link set <iface> up`。
@@ -681,7 +681,7 @@ ethtool -S eth0
 
 若介面為 `UP` 但 `carrier=0`，代表實體線路未連通，此時 DHCP Client 無法發送封包，應優先排查 PHY 暫存器、NC-SI 信號、網線與 Switch 埠狀態。
 
-### 23.3.2 Network Namespace
+### 36.3.2 Network Namespace
 
 預設情況下，OpenBMC 管理服務運行於 Default Network Namespace (`init_net`)。若系統設計使用 Container（如 Docker/LXC）或隔離的 Namespace，需精確記錄虛擬網卡（veth）、Bridge 與服務所在 Namespace。
 
@@ -694,7 +694,7 @@ ip netns exec <ns-name> ip address show
 ip netns exec <ns-name> ss -lntup
 ```
 
-## 23.4 OpenBMC Network Management
+## 36.4 OpenBMC Network Management
 
 OpenBMC 透過 `phosphor-networkd` Daemon 在 D-Bus 上提供標準化的網路配置介面，底層則調用 `systemd-networkd` 或 Netlink API 來套用 Linux 網路設定。
 
@@ -710,7 +710,7 @@ systemd-networkd / Linux Kernel Netdev
 Linux System Routing & Network Stack
 ```
 
-### 23.4.1 D-Bus Objects
+### 36.4.1 D-Bus Objects
 
 `phosphor-networkd` 將實體與虛擬介面拆解為物件樹：
 
@@ -728,7 +728,7 @@ Linux System Routing & Network Stack
 * `xyz.openbmc_project.Network.MACAddress`
 * `xyz.openbmc_project.Network.VLAN`
 
-### 23.4.2 Target 檢查
+### 36.4.2 Target 檢查
 
 透過以下指令檢查 OpenBMC 網路服務與 `systemd-networkd` 的運作狀態：
 
@@ -742,7 +742,7 @@ busctl tree xyz.openbmc_project.Network
 networkctl status
 ```
 
-### 23.4.3 Persistent 與 Runtime State
+### 36.4.3 Persistent 與 Runtime State
 
 * **Runtime State**：直接使用 `ip addr add` 或 `ip route add` 設定，重啟或 Daemon 重建後即消失。
 * **Persistent State**：透過 D-Bus / Redfish / IPMI 設定時，`phosphor-networkd` 會將設定寫入 `/etc/systemd/network/` 目錄下的 `.network` 與 `.netdev` 設定檔，由 `systemd-networkd` 永久保留。
@@ -754,7 +754,7 @@ networkctl status
 4. 檢查 `ip address` 與 `ip route` 核心實際套用狀態。
 5. 執行 BMC Soft Reset，驗證開機後設定是否完好。
 
-## 23.5 MAC Address
+## 36.5 MAC Address
 
 MAC Address 是 Layer 2 網路通訊的唯一硬體識別碼。BMC 需要擁有穩定且不隨韌體更新丟失的 MAC Address。
 
@@ -767,7 +767,7 @@ MAC Address 是 Layer 2 網路通訊的唯一硬體識別碼。BMC 需要擁有�
 6. **Manufacturing Partition**：專用的工廠保護區塊（如 `/rw/cow/` 或獨立 MTD 分區）。
 7. **Dynamic Platform Service**：開機時由平台服務根據 Asset Tag 動態算出。
 
-### 23.5.1 優先順序
+### 36.5.1 優先順序
 
 平台需明確定義 MAC Address 的讀取 Fallback 邏輯：
 
@@ -783,7 +783,7 @@ Locally Administered Fallback MAC (e.g., 02:00:00:00:00:01)
 
 > **安全警告**：Fallback MAC 僅可用於受控的內部開發或緊急復原流程。生產環境中若多台設備陷入 Fallback MAC，將導致 Layer 2 ARP 衝突與網路癱瘓。
 
-### 23.5.2 Permanent 與 Current MAC
+### 36.5.2 Permanent 與 Current MAC
 
 ```bash
 # 查看當前套用之 MAC 位址
@@ -796,13 +796,13 @@ cat /sys/class/net/eth0/address
 
 當使用 Bonding、VLAN 或 NC-SI 偽裝 MAC 時，Current MAC 可能與 Hardware Permanent MAC 不同。工程文件需明確註記對外廣播的 MAC 位址來源與 Failover 時的 MAC 轉移動作。
 
-### 23.5.3 Update 與 [Factory Reset](../08_part_8_manufacturing_and_production/46_calibration_board_data_and_provisioning.md)
+### 36.5.3 Update 與 [Factory Reset](../08_part_8_manufacturing_and_production/46_calibration_board_data_and_provisioning.md)
 
 MAC Address 屬於關鍵工廠資料（Factory Data），韌體更新（[Firmware Update](../06_part_6_security_and_firmware_maintenance/38_firmware_update.md)）與一般系統恢復原廠設定（Factory Reset）嚴禁覆蓋或清除 MAC 位址。若遭遇 RMA 換板，應提供專用的工廠生產工具進行 MAC 重新燒錄。
 
-## 23.6 IPv4：DHCP 與 Static Address
+## 36.6 IPv4：DHCP 與 Static Address
 
-### 23.6.1 DHCP
+### 36.6.1 DHCP
 
 DHCP 運作遵循 D.O.R.A. 四段流程：
 
@@ -828,7 +828,7 @@ Apply IP / Prefix / Gateway / DNS / NTP / Lease Time
 * **Address Conflict Detection (ACD)**：套用前需透過 ARP Probe 檢測 IP 是否衝突。
 * **DHCP Timeout / Fallback**：DHCP 失敗後是否自動切換至 Fallback Static IP 或 Link-Local Address。
 
-### 23.6.2 Static Address
+### 36.6.2 Static Address
 
 靜態 IP 配置至少包含以下參數：
 * **IPv4 Address**（例如：`192.168.1.100`）
@@ -838,7 +838,7 @@ Apply IP / Prefix / Gateway / DNS / NTP / Lease Time
 
 > **常見錯誤**：Subnet Mask 設定錯誤（如將 `/24` 設為 `/16`）會導致 ARP 廣播範圍異常，造成同網段通訊正常但跨網段封包無法經由 Gateway 送出。
 
-### 23.6.3 DHCP 與 Static 切換
+### 36.6.3 DHCP 與 Static 切換
 
 當網路模式由 Static 切換至 DHCP 或反向切換時，必須明確定義行為：
 1. **舊 Address 移除時機**：舊 IP 需立即從 Netdev 移除，避免產生多餘的 IP 綁定。
@@ -847,7 +847,7 @@ Apply IP / Prefix / Gateway / DNS / NTP / Lease Time
 4. **Recovery 機制**：新 IP 設定失敗（例如靜態 IP 輸入錯誤）時，應建立 Timer 逾時自動 Rollback 機制。
 5. **多介面同步**：Redfish (`/redfish/v1/Managers/bmc/EthernetInterfaces/eth0`)、IPMI (LAN Print) 與 D-Bus 呈現的 `DHCPEnabled` 狀態需保持強一致性。
 
-## 23.7 IPv6 Policy
+## 36.7 IPv6 Policy
 
 IPv6 具備多位址並存特性，單一 Netdev 介面可能同時擁有以下 IPv6 位址：
 * **Link-Local Address** (`fe80::/10`)：僅在 Layer 2 Segment 內有效，由 MAC 位址或 EUI-64 自動生成。
@@ -872,7 +872,7 @@ networkctl status eth0
 
 > **規範需求**：停用 IPv6 時，不能僅移除 IP 位址，必須透過 `sysctl` 禁用 Kernel IPv6 堆疊，並同步更新 `bmcweb` / `dropbear` 等服務之 Binding 策略與 nftables 規則，防止留下 IPv6 後門。
 
-## 23.8 Link-Local 與 Fallback Address
+## 36.8 Link-Local 與 Fallback Address
 
 * **IPv4 Link-Local**：使用 `169.254.0.0/16` 網段 (RFC 3927 / APIPA)。
 * **IPv6 Link-Local**：使用 `fe80::/10` 網段。
@@ -883,7 +883,7 @@ networkctl status eth0
 * **API 與 WebUI 綁定**：管理服務（如 `bmcweb`）需綁定在 `0.0.0.0` 與 `::`，以確保透過 Link-Local 位址也能存取 REST/Redfish 介面。
 * **防火牆風險**：Link-Local Address 常被忽視，防火牆政策需一併納入，防止未授權的區域網路存取。
 
-## 23.9 Default Gateway 與 Routing
+## 36.9 Default Gateway 與 Routing
 
 路由表決定 BMC 封包 egress（送出）時的方向。
 
@@ -896,18 +896,18 @@ ip -6 route show table all
 ip route get 8.8.8.8
 ```
 
-### 23.9.1 Default Route
+### 36.9.1 Default Route
 
 多介面平台（如同時存在 Dedicated `eth0` 與 Shared `eth1`）可能自多個來源取得預設路由。必須定義：
 * **Route Metric**：數字越小優先權越高（例如 `eth0` Metric 設為 `100`，`eth1` 設為 `200`）。
 * **Primary Interface**：指定主要對外通訊介面。
 * **DHCP vs Static Metric**：靜態路由通常設定比 DHCP 路由更高的優先權。
 
-### 23.9.2 Source Address Selection
+### 36.9.2 Source Address Selection
 
 當發送外網封包（如傳送 Redfish Event Alert、NTP 校時或下載 Firmware）時，Linux Kernel 會依據目標 IP 選取最佳 Source Address。若 Source Address 選錯（例如以 `169.254.x.x` 作為 Source IP 存取外部 syslog 伺服器），將導致連線失敗。
 
-### 23.9.3 Policy Routing
+### 36.9.3 Policy Routing
 
 多網卡高階平台可運用 Policy Routing 實現流量隔離：
 
@@ -920,7 +920,7 @@ ip rule add from 192.168.10.100 table 100
 ip route add default via 192.168.10.1 dev eth0 table 100
 ```
 
-## 23.10 VLAN
+## 36.10 VLAN
 
 VLAN (IEEE 802.1Q) 透過在 Ethernet Frame 中插入 4-byte Tag，在同一實體線路上劃分多個邏輯隔離的 Layer 2 網段。
 
@@ -931,7 +931,7 @@ Physical Interface (eth0)
         └── Virtual Interface: eth0.200 (VLAN ID: 200)
 ```
 
-### 23.10.1 Systemd Configuration 範例
+### 36.10.1 Systemd Configuration 範例
 
 `/etc/systemd/network/10-eth0.200.netdev`:
 ```ini
@@ -952,7 +952,7 @@ Name=eth0.200
 DHCP=ipv4
 ```
 
-### 23.10.2 Target 檢查
+### 36.10.2 Target 檢查
 
 ```bash
 ip -d link show type vlan
@@ -960,13 +960,13 @@ ip address show eth0.200
 networkctl status eth0.200
 ```
 
-### 23.10.3 常見問題
+### 36.10.3 常見問題
 
 * **Switch Port 標籤不符**：Upstream Switch 埠未設定成 Trunk Mode 或未允許該 VLAN ID。
 * **MTU 溢位**：VLAN 標籤佔用 4 bytes，若硬體未自動支援 Mini-Jumbo Frames，可能導致 MTU 超過 1500 bytes 限制而丟包。
 * **NC-SI VLAN Filter 未開啟**：Shared NIC 模式下，NC-SI 網卡硬體層未啟用對應 VLAN ID 的 Pass-through 濾鏡。
 
-## 23.11 Bonding
+## 36.11 Bonding
 
 Linux Bonding 驅動可將多個實體網卡組合成單一邏輯介面（如 `bond0`），以提供高可用性（Hot Standby）或頻寬整合（Load Balancing）。
 
@@ -976,15 +976,15 @@ Logical Bond (bond0) ─┤
                       └──> eth1 (NC-SI Shared NIC)
 ```
 
-### 23.11.1 Active-Backup (Mode 1)
+### 36.11.1 Active-Backup (Mode 1)
 
 最常用於 BMC 高可用架構。同一時間僅有一張主網卡（Active）負責傳送與接收流量；當主網卡 Carrier Down 時，系統秒級自動切換至備用網卡（Standby）。Switch 端無須配置 LACP。
 
-### 23.11.2 802.3ad LACP (Mode 4)
+### 36.11.2 802.3ad LACP (Mode 4)
 
 動態鏈結聚合模式，要求 upstream switch 埠必須支援並配置 802.3ad LACP Group。若 Switch 端未設定，Link 會無法建立或導致封包環路（Loop）。
 
-### 23.11.3 Bond 核心檢測與狀態
+### 36.11.3 Bond 核心檢測與狀態
 
 ```bash
 ip -d link show type bond
@@ -992,7 +992,7 @@ cat /proc/net/bonding/bond0
 networkctl status bond0
 ```
 
-## 23.12 NIC Failover
+## 36.12 NIC Failover
 
 NIC Failover 係指當現行網路鏈結失效時，系統自動將流量切換至備用網路路徑的運作機制。
 
@@ -1010,15 +1010,15 @@ Update Active Slave / Send Gratuitous ARP (GARP) & Unsolicited NA
 TCP Sessions Retransmit / Redfish Events Continue / IP Maintained
 ```
 
-### 23.12.1 Service-Aware Failover
+### 36.12.1 Service-Aware Failover
 
 單純的 Carrier Loss 檢測無法辨識 Upstream Router 當機或 DNS 服務停擺的狀況。高級平台可實作 Service-Aware Health Probe（如定期 ICMP Echo 或 TCP SYN 存取 Gateway），搭配 **Hysteresis Timer**（滯後計時器）防止網路於兩網卡間頻繁震盪（Flapping）。
 
-### 23.12.2 Gratuitous ARP (GARP) 與 Unsolicited NA
+### 36.12.2 Gratuitous ARP (GARP) 與 Unsolicited NA
 
 Failover 完成時，BMC 必須立即向 Layer 2 網路廣播 Gratuitous ARP (IPv4) 與 Unsolicited Neighbor Advertisement (IPv6)，強制 Upstream Switch 刷新 MAC Address Table，否則外部封包仍會持續送往舊的實體 Port。
 
-## 23.13 Hostname
+## 36.13 Hostname
 
 Hostname 是 BMC 在網路上的識別名稱，同步影響 DHCP Option 12、mDNS/LLMNR 服務發布、TLS 憑證 SAN (Subject Alternative Name) 以及 Redfish `Manager` 資源。
 
@@ -1034,7 +1034,7 @@ busctl get-property xyz.openbmc_project.Network /xyz/openbmc_project/network/con
 * **合法字元**：遵循 RFC 1123 規範（僅允許 `a-z`, `0-9` 與連字號 `-`，長度最高 63 字元）。
 * ** Factory Reset**：恢復原廠設定後，Hostname 應重置為包含產品序號的出廠預設值。
 
-## 23.14 DNS
+## 36.14 DNS
 
 OpenBMC 使用 `systemd-resolved` 管理域名解析。
 
@@ -1050,7 +1050,7 @@ systemd-resolved Stub Resolver (127.0.0.53:53)
 Upstream DNS Servers (Configured via Static / DHCP)
 ```
 
-### 23.14.1 排查步驟
+### 36.14.1 排查步驟
 
 ```bash
 # 1. 檢視 systemd-resolved 狀態與當前 DNS 伺服器
@@ -1064,11 +1064,11 @@ nslookup redfish.org
 nc -zvv -u <DNS_Server_IP> 53
 ```
 
-## 23.15 Time Synchronization
+## 36.15 Time Synchronization
 
 精確的系統時間是 TLS 憑證驗證、Audit Log 稽核、Firmware Attestation 與 Event 時序對齊的命脈。
 
-### 23.15.1 NTP / SNTP
+### 36.15.1 NTP / SNTP
 
 OpenBMC 預設選用 `systemd-timesyncd` 或 `chrony` 進行時間同步。
 
@@ -1083,7 +1083,7 @@ journalctl -u systemd-timesyncd -b --no-pager
 * **Step**：開機初期差距過大時，直接跳躍修正系統時間。
 * **Slew**：系統運行中，以微幅調整 Clock Frequency 的方式漸進校正時間，避免 Log Timestamp 倒退。
 
-### 23.15.2 PTP (IEEE 1588)
+### 36.15.2 PTP (IEEE 1588)
 
 對時間精度要求至微秒（$\mu s$）等級的資料中心，BMC 可啟用 PTP 服務。透過 `ptp4l` 與 `phc2sys` 工具將 Hardware Timestamping 與 Physical Hardware Clock (PHC) 同步至 Linux System Clock。
 
@@ -1093,11 +1093,11 @@ ethtool -T eth0
 ls -l /dev/ptp*
 ```
 
-### 23.15.3 Time Owner 仲裁機制
+### 36.15.3 Time Owner 仲裁機制
 
 > **重要原則**：系統中嚴禁同時有兩個服務（如 NTP 與 PTP，或 NTP 與 IPMI Set SEL Time）同時寫入 System Clock，否則會造成系統時間無限跳動。平台需明確設計時間主控權（Time Owner）仲裁邏輯。
 
-## 23.16 Network Service Listening
+## 36.16 Network Service Listening
 
 網路介面指派 IP 位址後，管理 Daemon 必須開啟對應 Socket 並進行 Bind。
 
@@ -1114,7 +1114,7 @@ ss -lntup
 
 服務可設定 Binding 策略：`0.0.0.0` (All IPv4)、`::` (All IPv6) 或限定特定 Netdev 介面。當動態新增 VLAN 或切換 IP 時，必須確保服務 Socket 能自動適應或重置綁定。
 
-## 23.17 Redfish Network Mapping
+## 36.17 Redfish Network Mapping
 
 Redfish 標準模型透過 Manager 資源呈現網路介面：
 
@@ -1150,7 +1150,7 @@ Redfish 標準模型透過 Manager 資源呈現網路介面：
 
 當發送 `PATCH` 請求修改 Redfish 網路設定時，`bmcweb` 將轉換為 D-Bus 方法調用，修改 `phosphor-networkd`，最後產出 `.network` 檔案並執行 `systemd-networkd` 重載。
 
-## 23.18 IPMI LAN Configuration
+## 36.18 IPMI LAN Configuration
 
 IPMI over LAN (Channel 1 或 Channel 2) 的網路設定，在 OpenBMC 中必須映射至與 Redfish/D-Bus 相同的單一 Authority 源頭。
 
@@ -1167,7 +1167,7 @@ ipmitool lan set 1 ipsrc static
 
 內部介面必須實作 **Set-In-Progress (SIP)** 狀態機，確保在連刷多條 IPMI 指令時，不會因中途部分套用而產生網路斷線。
 
-## 23.19 Firewall 與 Service Exposure
+## 36.19 Firewall 與 Service Exposure
 
 OpenBMC 現代版本預設採用 `nftables` 作為防火牆引擎，實施最小權限（Zero Trust）之對外服務管控。
 
@@ -1200,7 +1200,7 @@ table inet filter {
 }
 ```
 
-## 23.20 TLS / Certificate 與時間相依性
+## 36.20 TLS / Certificate 與時間相依性
 
 HTTPS / Redfish 連線建立包含以下相依鏈結：
 
@@ -1218,7 +1218,7 @@ Establish Encrypted Session
 
 > **陷阱**：若 BMC 剛開機且時間未與 NTP 同步（預設落在 1970 年），TLS Handshake 會因為「憑證尚未生效 (`Certificate Not Yet Valid`)」而被 Client 端的瀏覽器或 API Script 直接拒絕。系統設計必須考量在 RTC 無電池或未同步時間前，如何妥善處理預設自訂憑證與開機流程。
 
-## 23.21 [開機可連線時間](../07_part_7_debugging_performance_and_testing/43_performance_resource_and_boot_time.md)
+## 36.21 [開機可連線時間](../07_part_7_debugging_performance_and_testing/43_performance_resource_and_boot_time.md)
 
 「BMC 開機完成」不等於「網路與 Redfish API 可用」。完整評估 BMC 開機效能需依據以下「開機至 API 可用」之精細時間線：
 
@@ -1237,7 +1237,7 @@ T10 Session Authentication Success
 T11 First Redfish API Request Success (/redfish/v1/ 200 OK)
 ```
 
-### 23.21.1 自動化量測 Script (Python/Bash)
+### 36.21.1 自動化量測 Script (Python/Bash)
 
 外部測試端可執行以下 Probe 腳本，記錄精確的時間點：
 
@@ -1260,7 +1260,7 @@ while true; do
 done
 ```
 
-## 23.22 Network Configuration Update
+## 36.22 Network Configuration Update
 
 遠端透過 Redfish 或 IPMI 修改 BMC 的 IP 位址極具風險，一旦參數設定錯誤將導致 BMC 永遠失聯。安全的配置更新流程需包含 **Two-Phase Commit** 與 **Rollback Timer**：
 
@@ -1278,7 +1278,7 @@ User Accesses BMC via New IP & Sends "Confirm / Commit" API Call
         └──> (Timeout / No Response) Automatic Rollback to Previous IP Config
 ```
 
-## 23.23 Persistent Data / Update 與 Factory Reset
+## 36.23 Persistent Data / Update 與 Factory Reset
 
 BMC 網路相關設定在韌體更新（Firmware Update）與恢復原廠設定（Factory Reset）時的保存政策：
 
@@ -1292,13 +1292,13 @@ BMC 網路相關設定在韌體更新（Firmware Update）與恢復原廠設定�
 | **TLS Certificates** | `/etc/ssl/certs/https/` | **保留** | **重新產生自簽憑證** |
 | **DHCP Lease Cache** | `/var/lib/systemd/network/` | 可重建 | 清除 |
 
-## 23.24 [Security 與管理平面隔離](../06_part_6_security_and_firmware_maintenance/37_security_baseline.md)
+## 36.24 [Security 與管理平面隔離](../06_part_6_security_and_firmware_maintenance/37_security_baseline.md)
 
 * **Out-of-Band (OOB) 隔離**：專用管理網路 (Dedicated NIC) 應與 Data Center 內部業務數據網路實體隔離。
 * **NC-SI Pass-through 側鏈安全**：Shared NIC 模式下，硬體過濾器必須禁止 Host 存取 BMC 內部私有 IP，防止惡意 Host 透過 Sideband 攻擊 BMC。
 * **Rate Limiting (抗 DoS 攻擊)**：利用 `nftables` 設定 ICMP 與 SYN 封包速率限制。
 
-## 23.25 常見問題與判讀
+## 36.25 常見問題與判讀
 
 | 障礙現象 | 可能原因 | 優先排查指令與工具 |
 | :--- | :--- | :--- |
@@ -1310,7 +1310,7 @@ BMC 網路相關設定在韌體更新（Firmware Update）與恢復原廠設定�
 | Ping 正常，但 Redfish / HTTPS 連不上 | `bmcweb` 當掉、Socket 綁定錯誤或系統時間異常導致 TLS 失效 | `ss -lntup`, `systemctl status bmcweb`, `timedatectl` |
 | Master Switch 切換後，BMC 失聯 | BMC 未發送 Gratuitous ARP，Switch MAC 表未更新 | `ip neighbor show`, 手動執行 `arping -I eth0 -A -c 3 <BMC_IP>` |
 
-## 23.26 [Packet Capture 與診斷](../07_part_7_debugging_performance_and_testing/41_debug_toolkit.md)
+## 36.26 [Packet Capture 與診斷](../07_part_7_debugging_performance_and_testing/41_debug_toolkit.md)
 
 當網路疑難雜症無法透過 Log 判定時，使用 `tcpdump` 側錄原始封包為最終權威診斷手法。
 
@@ -1328,7 +1328,7 @@ tcpdump -ni eth0 -e 'arp or icmp6'
 tcpdump -ni eth0 -nn -X 'tcp port 443'
 ```
 
-## 23.27 [Debug Log 收集](../07_part_7_debugging_performance_and_testing/41_debug_toolkit.md)
+## 36.27 [Debug Log 收集](../07_part_7_debugging_performance_and_testing/41_debug_toolkit.md)
 
 工程師可執行此自動化指令指令集，一次收集所有網路排查必備資訊：
 
@@ -1367,7 +1367,7 @@ tar czf "/tmp/network-debug-$(date +%Y%m%d-%H%M%S).tar.gz" -C /tmp network-debug
 echo "Debug package collected at /tmp/network-debug-*.tar.gz"
 ```
 
-## 23.28 [Bring-up 順序](../07_part_7_debugging_performance_and_testing/40_debug_methodology.md)
+## 36.28 [Bring-up 順序](../07_part_7_debugging_performance_and_testing/40_debug_methodology.md)
 
 新 BMC 平台板卡（Bring-up）網路除錯作業順序：
 
@@ -1382,7 +1382,7 @@ echo "Debug package collected at /tmp/network-debug-*.tar.gz"
 9. **D-Bus 與 Redfish 一致性**：透過 Redfish API 進行網路變更，驗證 D-Bus 物件與 Linux Runtime 設定是否完全一致。
 10. **開機效能指標**：量測 T0 至 T11 各階段時間，進行開機速度最佳化。
 
-## 23.29 平台實測紀錄表
+## 36.29 平台實測紀錄表
 
 ### 介面狀態紀錄表
 
@@ -1409,7 +1409,7 @@ echo "Debug package collected at /tmp/network-debug-*.tar.gz"
 | **T8: Service Listening** | `bmcweb` port 443 socket listening | [待填] | [待填] |
 | **T11: Redfish API Ready** | External Probe HTTP 200/401 OK | [待填] | [待填] |
 
-## 23.30 [驗收 Checklist](../08_part_8_manufacturing_and_production/45_manufacturing_and_factory.md)
+## 36.30 [驗收 Checklist](../08_part_8_manufacturing_and_production/45_manufacturing_and_factory.md)
 
 ### 基礎介面與 IP 位址
 - [ ] Dedicated PHY 或 NC-SI Shared NIC 驅動程式無 Error 載入。
@@ -1430,7 +1430,7 @@ echo "Debug package collected at /tmp/network-debug-*.tar.gz"
 - [ ] TLS 憑證驗證於時間同步完成前後均具備良好的防呆與提示機制。
 - [ ] Redfish API、IPMI LAN Commands、D-Bus 物件與 Linux 系統 Runtime 狀態維持強一致性。
 
-## 23.31 本章重點
+## 36.31 本章重點
 
 1. **網路完整性**：BMC 網路可用性不只是 IP 能 Ping 通，必須涵蓋自 PHY Link 至上層 Redfish API 與 TLS Handshake 的完整通路。
 2. **介面權威**：網卡 MAC 位址與網路設定必須具備單一權威源頭（Authority），防止 IPMI、Redfish 與 D-Bus 各自為政。
@@ -1438,7 +1438,7 @@ echo "Debug package collected at /tmp/network-debug-*.tar.gz"
 4. **側鏈隔離**：NC-SI Shared NIC 模式省去獨立網線成本，但必須嚴格審查 Standby 供電政策與 Sideband 側鏈安全性。
 5. **指標量測**：衡量 BMC 網路效能應以「開機至第一個 REST/Redfish API 可成功回應 (T11)」為權威驗收指標。
 
-## 23.32 本章參考資料
+## 36.32 本章參考資料
 
 * OpenBMC phosphor-networkd Architecture: [https://github.com/openbmc/phosphor-networkd](https://github.com/openbmc/phosphor-networkd)
 * systemd-networkd & systemd.network Manual: [https://www.freedesktop.org/software/systemd/man/latest/systemd-networkd.service.html](https://www.freedesktop.org/software/systemd/man/latest/systemd-networkd.service.html)
