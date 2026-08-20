@@ -2,9 +2,9 @@
 
 
 
-BMC 網路是遠端伺服器硬體管理的主要入口。網路可用性不只取決於是否成功取得 IP address，還需依序完成 MAC 位址初始化、PHY / NC-SI link 建立、VLAN 標籤處理、路由表（Route）配置、DNS 解析、時間同步（NTP / PTP）、TLS 憑證驗證與上層 OpenBMC 管理服務啟動。
+BMC 網路是遠端伺服器硬體管理的主要入口。網路可用性不只取決於是否成功取得 IP address，還需依序完成 [MAC 位址](../01_part_1_hardware_abstraction_layer/13_ethernet_mac_phy_and_mdio.md)初始化、[PHY](../01_part_1_hardware_abstraction_layer/13_ethernet_mac_phy_and_mdio.md) / [NC-SI](../01_part_1_hardware_abstraction_layer/14_nc_si.md) link 建立、VLAN 標籤處理、路由表（Route）配置、DNS 解析、時間同步（NTP / PTP）、[TLS 憑證驗證](../06_part_6_security_and_firmware_maintenance/37_security_baseline.md)與上層 [OpenBMC 管理服務](../03_part_3_platform_monitoring_and_control/23_openbmc_common_projects_and_services_reference.md)啟動。
 
-本章從底層實體網路介面出發，系統化說明 DHCP、Static IP、IPv6 策略、VLAN、Bonding、NIC failover、Hostname、DNS、NTP / PTP、nftables 防火牆、Redfish 與 IPMI network service 的軟硬體整合架構，並建立可重複量測的「開機至 API 可用」時間線與完整驗收流程。
+本章從底層實體網路介面出發，系統化說明 DHCP、Static IP、IPv6 策略、VLAN、Bonding、NIC failover、Hostname、DNS、NTP / PTP、nftables 防火牆、[Redfish](35_redfish_fundamentals.md) 與 [IPMI](34_ipmi_fundamentals.md) network service 的軟硬體整合架構，並建立可重複量測的「開機至 API 可用」時間線與完整驗收流程。
 
 ## 23.1 BMC 網路資料路徑
 
@@ -97,7 +97,7 @@ BMC 內建的 MAC Controller 透過 RGMII、RMII 等 MAC-to-PHY 介面，連接�
 
 ##### 1. MAC Controller 與驅動綁定
 
-確認 Devicetree 中的 MAC 節點已啟用：
+確認 [Devicetree](../02_part_2_bsp_kernel_and_device_tree/20_device_tree_common_patterns_and_troubleshooting.md) 中的 MAC 節點已啟用：
 
 ```dts
 &mac0 {
@@ -796,9 +796,9 @@ cat /sys/class/net/eth0/address
 
 當使用 Bonding、VLAN 或 NC-SI 偽裝 MAC 時，Current MAC 可能與 Hardware Permanent MAC 不同。工程文件需明確註記對外廣播的 MAC 位址來源與 Failover 時的 MAC 轉移動作。
 
-### 23.5.3 Update 與 Factory Reset
+### 23.5.3 Update 與 [Factory Reset](../08_part_8_manufacturing_and_production/46_calibration_board_data_and_provisioning.md)
 
-MAC Address 屬於關鍵工廠資料（Factory Data），韌體更新（Firmware Update）與一般系統恢復原廠設定（Factory Reset）嚴禁覆蓋或清除 MAC 位址。若遭遇 RMA 換板，應提供專用的工廠生產工具進行 MAC 重新燒錄。
+MAC Address 屬於關鍵工廠資料（Factory Data），韌體更新（[Firmware Update](../06_part_6_security_and_firmware_maintenance/38_firmware_update.md)）與一般系統恢復原廠設定（Factory Reset）嚴禁覆蓋或清除 MAC 位址。若遭遇 RMA 換板，應提供專用的工廠生產工具進行 MAC 重新燒錄。
 
 ## 23.6 IPv4：DHCP 與 Static Address
 
@@ -1218,7 +1218,7 @@ Establish Encrypted Session
 
 > **陷阱**：若 BMC 剛開機且時間未與 NTP 同步（預設落在 1970 年），TLS Handshake 會因為「憑證尚未生效 (`Certificate Not Yet Valid`)」而被 Client 端的瀏覽器或 API Script 直接拒絕。系統設計必須考量在 RTC 無電池或未同步時間前，如何妥善處理預設自訂憑證與開機流程。
 
-## 23.21 開機可連線時間
+## 23.21 [開機可連線時間](../07_part_7_debugging_performance_and_testing/43_performance_resource_and_boot_time.md)
 
 「BMC 開機完成」不等於「網路與 Redfish API 可用」。完整評估 BMC 開機效能需依據以下「開機至 API 可用」之精細時間線：
 
@@ -1292,7 +1292,7 @@ BMC 網路相關設定在韌體更新（Firmware Update）與恢復原廠設定�
 | **TLS Certificates** | `/etc/ssl/certs/https/` | **保留** | **重新產生自簽憑證** |
 | **DHCP Lease Cache** | `/var/lib/systemd/network/` | 可重建 | 清除 |
 
-## 23.24 Security 與管理平面隔離
+## 23.24 [Security 與管理平面隔離](../06_part_6_security_and_firmware_maintenance/37_security_baseline.md)
 
 * **Out-of-Band (OOB) 隔離**：專用管理網路 (Dedicated NIC) 應與 Data Center 內部業務數據網路實體隔離。
 * **NC-SI Pass-through 側鏈安全**：Shared NIC 模式下，硬體過濾器必須禁止 Host 存取 BMC 內部私有 IP，防止惡意 Host 透過 Sideband 攻擊 BMC。
@@ -1310,7 +1310,7 @@ BMC 網路相關設定在韌體更新（Firmware Update）與恢復原廠設定�
 | Ping 正常，但 Redfish / HTTPS 連不上 | `bmcweb` 當掉、Socket 綁定錯誤或系統時間異常導致 TLS 失效 | `ss -lntup`, `systemctl status bmcweb`, `timedatectl` |
 | Master Switch 切換後，BMC 失聯 | BMC 未發送 Gratuitous ARP，Switch MAC 表未更新 | `ip neighbor show`, 手動執行 `arping -I eth0 -A -c 3 <BMC_IP>` |
 
-## 23.26 Packet Capture 與診斷
+## 23.26 [Packet Capture 與診斷](../07_part_7_debugging_performance_and_testing/41_debug_toolkit.md)
 
 當網路疑難雜症無法透過 Log 判定時，使用 `tcpdump` 側錄原始封包為最終權威診斷手法。
 
@@ -1328,7 +1328,7 @@ tcpdump -ni eth0 -e 'arp or icmp6'
 tcpdump -ni eth0 -nn -X 'tcp port 443'
 ```
 
-## 23.27 Debug Log 收集
+## 23.27 [Debug Log 收集](../07_part_7_debugging_performance_and_testing/41_debug_toolkit.md)
 
 工程師可執行此自動化指令指令集，一次收集所有網路排查必備資訊：
 
@@ -1367,7 +1367,7 @@ tar czf "/tmp/network-debug-$(date +%Y%m%d-%H%M%S).tar.gz" -C /tmp network-debug
 echo "Debug package collected at /tmp/network-debug-*.tar.gz"
 ```
 
-## 23.28 Bring-up 順序
+## 23.28 [Bring-up 順序](../07_part_7_debugging_performance_and_testing/40_debug_methodology.md)
 
 新 BMC 平台板卡（Bring-up）網路除錯作業順序：
 
@@ -1409,7 +1409,7 @@ echo "Debug package collected at /tmp/network-debug-*.tar.gz"
 | **T8: Service Listening** | `bmcweb` port 443 socket listening | [待填] | [待填] |
 | **T11: Redfish API Ready** | External Probe HTTP 200/401 OK | [待填] | [待填] |
 
-## 23.30 驗收 Checklist
+## 23.30 [驗收 Checklist](../08_part_8_manufacturing_and_production/45_manufacturing_and_factory.md)
 
 ### 基礎介面與 IP 位址
 - [ ] Dedicated PHY 或 NC-SI Shared NIC 驅動程式無 Error 載入。
